@@ -47,15 +47,23 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val userName = call.argument<String>("userName")!!
 
         passkey.signUpAsync(token, userName).thenApply {
-          result.success(it)
+          if (it.error != null) {
+            result.error("signUpError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
         }
       }
 
       "passkey.signIn" -> {
         val token = call.argument<String>("token")
 
-        passkey.signInAsync(token).thenApply {
-          result.success(it)
+        passkey.signInAsync(token).thenAcceptAsync {
+          if (it.error != null) {
+            result.error("signInError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
         }
       }
 
@@ -69,28 +77,44 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "push.getCredential" -> {
-        push.getCredentialAsync().thenApply {
-          result.success(it)
+        push.getCredentialAsync().thenAcceptAsync {
+          if (it.error != null) {
+            result.error("getCredentialError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
         }
       }
 
       "push.addCredential" -> {
         val token = call.argument<String>("token")!!
 
-        push.addCredentialAsync(token).thenApply {
-          result.success(it)
+        push.addCredentialAsync(token).thenAcceptAsync {
+          if (it.error != null) {
+            result.error("addCredentialError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
         }
       }
 
       "push.removeCredential" -> {
-        push.removeCredentialAsync().thenApply {
-          result.success(it)
+        push.removeCredentialAsync().thenAcceptAsync {
+          if (it.error != null) {
+            result.error("removeCredentialError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
         }
       }
 
       "push.getChallenge" -> {
-        push.getChallengeAsync().thenApply {
-          result.success(it)
+        push.getChallengeAsync().thenAcceptAsync {
+          if (it.error != null) {
+            result.error("getChallengeError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
         }
       }
 
@@ -99,8 +123,12 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val approved = call.argument<Boolean>("approved")!!
         val verificationCode = call.argument<String>("verificationCode")
 
-        push.updateChallengeAsync(challengeId, approved, verificationCode).thenApply {
-          result.success(it)
+        push.updateChallengeAsync(challengeId, approved, verificationCode).thenAcceptAsync {
+          if (it.error != null) {
+            result.error("updateChallengeError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
         }
       }
 
