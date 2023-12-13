@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'authsignal_flutter'
-  s.version          = '0.0.2'
+  s.version          = '0.1.1'
   s.summary          = 'The Authsignal Flutter SDK.'
   s.description      = 'The Authsignal Flutter SDK.'
   s.homepage         = 'http://example.com'
