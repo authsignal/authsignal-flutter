@@ -1,7 +1,7 @@
 name: authsignal_flutter
-description: "A new Flutter plugin project."
-version: 0.0.2
-homepage:
+description: "The Authsignal Flutter SDK for Passkeys and Push Auth"
+version: 0.1.0
+homepage: "https://github.com/authsignal/authsignal-flutter"
 
 environment:
   sdk: ">=3.2.2 <4.0.0"
