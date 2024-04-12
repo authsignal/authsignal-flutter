@@ -43,11 +43,12 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       
     case "passkey.signIn":
       let arguments = call.arguments as! [String: Any]
+      let action = arguments["action"] as? String
       let token = arguments["token"] as? String
       let autofill = arguments["autofill"] as? Bool ?? false
 
       Task.init {
-        let response = await self.passkey!.signIn(token: token, autofill: autofill)
+        let response = await self.passkey!.signIn(token: token, action: action, autofill: autofill)
         
         if (response.error != nil) {
           let error = FlutterError(code: "signInError", message: response.error, details: "");
@@ -59,6 +60,18 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
 
     case "passkey.cancel":
       self.passkey?.cancel()
+
+    case "passkey.isAvailableOnDevice":
+      Task.init {
+        let response = await self.passkey!.isAvailableOnDevice()
+        
+        if (response.error != nil) {
+          let error = FlutterError(code: "isAvailableOnDeviceError", message: response.error, details: "");
+          result(error)
+        } else {
+          result(response.data)
+        }
+      }
       
     case "push.initialize":
       let arguments = call.arguments as! [String: Any]

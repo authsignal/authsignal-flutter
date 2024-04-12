@@ -56,11 +56,22 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "passkey.signIn" -> {
+        val action = call.argument<String>("action")
         val token = call.argument<String>("token")
 
-        passkey.signInAsync(token).thenAcceptAsync {
+        passkey.signInAsync(action, token).thenAcceptAsync {
           if (it.error != null) {
             result.error("signInError", it.error!!, "")
+          } else {
+            result.success(it.data)
+          }
+        }
+      }
+
+      "passkey.isAvailableOnDevice" -> {
+        passkey.isAvailableOnDeviceAsync().thenApply {
+          if (it.error != null) {
+            result.error("isAvailableOnDeviceError", it.error!!, "")
           } else {
             result.success(it.data)
           }
