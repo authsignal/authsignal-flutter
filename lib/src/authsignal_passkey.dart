@@ -40,10 +40,11 @@ class AuthsignalPasskey {
   }
 
   Future<AuthsignalResponse<String>> signIn(
-      {String? token, bool autofill = false}) async {
+      {String? action, String? token, bool autofill = false}) async {
     await _ensureModuleIsInitialized();
 
     var arguments = <String, dynamic>{};
+    arguments['action'] = action;
     arguments['token'] = token;
     arguments['autofill'] = autofill;
 
@@ -79,6 +80,23 @@ class AuthsignalPasskey {
     if (Platform.isIOS) {
       await methodChannel.invokeMethod('passkey.cancel');
     }
+  }
+
+  Future<AuthsignalResponse<bool>> isAvailableOnDevice() async {
+    await _ensureModuleIsInitialized();
+
+    var response = AuthsignalResponse<bool>();
+
+    try {
+      final data =
+          await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
+
+      response.data = data;
+    } catch (ex) {
+      response.error = ex.toString();
+    }
+
+    return response;
   }
 
   Future<void> _ensureModuleIsInitialized() async {
