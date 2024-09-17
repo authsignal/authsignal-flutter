@@ -12,26 +12,26 @@ class AuthsignalPasskey {
   final String tenantID;
   final String baseURL;
 
-  AuthsignalPasskey(this.tenantID, {String? baseURL})
-      : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalPasskey(this.tenantID, {String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
-  Future<AuthsignalResponse<String>> signUp(String token,
-      {String? userName}) async {
+  Future<AuthsignalResponse<SignUpResponse>> signUp(String token, {String? username, String? displayName}) async {
     await _ensureModuleIsInitialized();
 
     var arguments = <String, dynamic>{'token': token};
-    arguments['userName'] = userName;
+    arguments['username'] = username;
+    arguments['displayName'] = displayName;
 
-    var response = AuthsignalResponse<String>();
+    var response = AuthsignalResponse<SignUpResponse>();
 
     try {
-      final data =
-          await methodChannel.invokeMethod<String>('passkey.signUp', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>('passkey.signUp', arguments);
 
-      response.data = data;
+      if (data != null) {
+        response.data = SignUpResponse.fromMap(data);
+      }
     } catch (ex) {
       response.error = ex.toString();
     }
@@ -39,16 +39,17 @@ class AuthsignalPasskey {
     return response;
   }
 
-  Future<AuthsignalResponse<String>> signIn(
-      {String? action, String? token, bool autofill = false}) async {
+  Future<AuthsignalResponse<SignInResponse>> signIn(
+      {String? action, String? token, bool autofill = false, preferImmediatelyAvailableCredentials = true}) async {
     await _ensureModuleIsInitialized();
 
     var arguments = <String, dynamic>{};
     arguments['action'] = action;
     arguments['token'] = token;
     arguments['autofill'] = autofill;
+    arguments['preferImmediatelyAvailableCredentials'] = preferImmediatelyAvailableCredentials;
 
-    var response = AuthsignalResponse<String>();
+    var response = AuthsignalResponse<SignInResponse>();
 
     try {
       if (autofill) {
@@ -59,16 +60,34 @@ class AuthsignalPasskey {
         }
       }
 
-      final data =
-          await methodChannel.invokeMethod<String>('passkey.signIn', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>('passkey.signIn', arguments);
 
       _autofillRequestPending = false;
 
-      response.data = data;
-    } catch (ex) {
+      if (data != null) {
+        response.data = SignInResponse.fromMap(data);
+      }
+    } on PlatformException catch (ex) {
       _autofillRequestPending = false;
 
-      response.error = ex.toString();
+      switch (ex.message) {
+        case 'SIGN_IN_CANCELED':
+          {
+            response.errorCode = 'passkeySignInCanceled';
+            response.error = 'Passkey sign-in canceled';
+          }
+
+        case 'SIGN_IN_NO_CREDENTIAL':
+          {
+            response.errorCode = 'noPasskeyCredentialAvailable';
+            response.error = 'No passkey credential available';
+          }
+
+        default:
+          {
+            response.error = ex.message;
+          }
+      }
     }
 
     return response;
@@ -88,8 +107,7 @@ class AuthsignalPasskey {
     var response = AuthsignalResponse<bool>();
 
     try {
-      final data =
-          await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
+      final data = await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
 
       response.data = data;
     } catch (ex) {
@@ -101,10 +119,7 @@ class AuthsignalPasskey {
 
   Future<void> _ensureModuleIsInitialized() async {
     if (!_initialized) {
-      var arguments = <String, String>{
-        'tenantID': tenantID,
-        'baseURL': baseURL
-      };
+      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
 
       await methodChannel.invokeMethod<String>('passkey.initialize', arguments);
 

@@ -9,22 +9,22 @@ class AuthsignalPush {
 
   bool _initialized = false;
 
-  AuthsignalPush(this.tenantID, {String? baseURL})
-      : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalPush(this.tenantID, {String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
-  Future<AuthsignalResponse<String>> getCredential() async {
+  Future<AuthsignalResponse<PushCredential?>> getCredential() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<String>();
+    var response = AuthsignalResponse<PushCredential?>();
 
     try {
-      final data =
-          await methodChannel.invokeMethod<String>('push.getCredential');
+      final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getCredential');
 
-      response.data = data;
+      if (data != null) {
+        response.data = PushCredential.fromMap(data);
+      }
     } catch (ex) {
       response.error = ex.toString();
     }
@@ -32,7 +32,7 @@ class AuthsignalPush {
     return response;
   }
 
-  Future<AuthsignalResponse<bool>> addCredential(String token) async {
+  Future<AuthsignalResponse<bool>> addCredential({String? token}) async {
     await _ensureModuleIsInitialized();
 
     var arguments = <String, dynamic>{'token': token};
@@ -40,8 +40,7 @@ class AuthsignalPush {
     var response = AuthsignalResponse<bool>();
 
     try {
-      final data = await methodChannel.invokeMethod<bool>(
-          'push.addCredential', arguments);
+      final data = await methodChannel.invokeMethod<bool>('push.addCredential', arguments);
 
       response.data = data;
     } catch (ex) {
@@ -57,8 +56,7 @@ class AuthsignalPush {
     var response = AuthsignalResponse<bool>();
 
     try {
-      final data =
-          await methodChannel.invokeMethod<bool>('push.removeCredential');
+      final data = await methodChannel.invokeMethod<bool>('push.removeCredential');
 
       response.data = data;
     } catch (ex) {
@@ -68,16 +66,17 @@ class AuthsignalPush {
     return response;
   }
 
-  Future<AuthsignalResponse<String>> getChallenge() async {
+  Future<AuthsignalResponse<PushChallenge?>> getChallenge() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<String>();
+    var response = AuthsignalResponse<PushChallenge?>();
 
     try {
-      final data =
-          await methodChannel.invokeMethod<String>('push.getChallenge');
+      final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getChallenge');
 
-      response.data = data;
+      if (data != null) {
+        response.data = PushChallenge.fromMap(data);
+      }
     } catch (ex) {
       response.error = ex.toString();
     }
@@ -85,23 +84,18 @@ class AuthsignalPush {
     return response;
   }
 
-  Future<AuthsignalResponse<bool>> updateChallenge(
-      String challengeId, bool approved,
+  Future<AuthsignalResponse<bool>> updateChallenge(String challengeId, bool approved,
       {String? verificationCode}) async {
     await _ensureModuleIsInitialized();
 
-    var arguments = <String, dynamic>{
-      'challengeId': challengeId,
-      'approved': approved
-    };
+    var arguments = <String, dynamic>{'challengeId': challengeId, 'approved': approved};
 
     arguments['verificationCode'] = verificationCode;
 
     var response = AuthsignalResponse<bool>();
 
     try {
-      final data = await methodChannel.invokeMethod<bool>(
-          'push.updateChallenge', arguments);
+      final data = await methodChannel.invokeMethod<bool>('push.updateChallenge', arguments);
 
       response.data = data;
     } catch (ex) {
@@ -113,10 +107,7 @@ class AuthsignalPush {
 
   Future<void> _ensureModuleIsInitialized() async {
     if (!_initialized) {
-      var arguments = <String, String>{
-        'tenantID': tenantID,
-        'baseURL': baseURL
-      };
+      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
 
       await methodChannel.invokeMethod<String>('push.initialize', arguments);
 

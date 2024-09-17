@@ -43,14 +43,21 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "passkey.signUp" -> {
-        val token = call.argument<String>("token")!!
-        val userName = call.argument<String>("userName")!!
+        val token = call.argument<String>("token")
+        val username = call.argument<String>("username")
+        val displayName = call.argument<String>("displayName")
 
-        passkey.signUpAsync(token, userName).thenApply {
-          if (it.error != null) {
+        passkey.signUpAsync(token, username, displayName).thenApply {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
             result.error("signUpError", it.error!!, "")
           } else {
-            result.success(it.data)
+            val data = mapOf(
+              "token" to it.data!!.token
+            )
+
+            result.success(data)
           }
         }
       }
@@ -60,10 +67,27 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val token = call.argument<String>("token")
 
         passkey.signInAsync(action, token).thenAcceptAsync {
-          if (it.error != null) {
+          if (it.errorType != null) {
+            if (it.errorType.equals("android.credentials.GetCredentialException.TYPE_NO_CREDENTIAL")) {
+              result.error("signInNoCredential", "SIGN_IN_NO_CREDENTIAL", "")
+            }
+
+            if (it.errorType.equals("android.credentials.GetCredentialException.TYPE_USER_CANCELED")) {
+              result.error("signInCanceled", "SIGN_IN_CANCELED", "")
+            }
+          } else if (it.error != null) {
             result.error("signInError", it.error!!, "")
           } else {
-            result.success(it.data)
+            val data = mapOf(
+              "isVerified" to it.data!!.isVerified,
+              "token" to it.data!!.token,
+              "userId" to it.data!!.userId,
+              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
+              "username" to it.data!!.username,
+              "displayName" to it.data!!.displayName
+            )
+
+            result.success(data)
           }
         }
       }
@@ -91,17 +115,27 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         push.getCredentialAsync().thenAcceptAsync {
           if (it.error != null) {
             result.error("getCredentialError", it.error!!, "")
+          } else if (it.data != null) {
+            val data = mapOf(
+              "credentialId" to it.data!!.credentialId,
+              "createdAt" to it.data!!.createdAt,
+              "lastAuthenticatedAt" to it.data!!.lastAuthenticatedAt
+            )
+
+            result.success(data)
           } else {
-            result.success(it.data)
+            result.success(null)
           }
         }
       }
 
       "push.addCredential" -> {
-        val token = call.argument<String>("token")!!
+        val token = call.argument<String>("token")
 
         push.addCredentialAsync(token).thenAcceptAsync {
-          if (it.error != null) {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
             result.error("addCredentialError", it.error!!, "")
           } else {
             result.success(it.data)
@@ -123,8 +157,19 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         push.getChallengeAsync().thenAcceptAsync {
           if (it.error != null) {
             result.error("getChallengeError", it.error!!, "")
+          } else if (it.data != null) {
+            val data = mapOf(
+              "challengeId" to it.data!!.challengeId,
+              "actionCode" to it.data!!.actionCode,
+              "idempotencyKey" to it.data!!.idempotencyKey,
+              "ipAddress" to it.data!!.ipAddress,
+              "deviceId" to it.data!!.deviceId,
+              "userAgent" to it.data!!.userAgent
+            )
+
+            result.success(data)
           } else {
-            result.success(it.data)
+            result.success(null)
           }
         }
       }
