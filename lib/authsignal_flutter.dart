@@ -1,7 +1,7 @@
 import 'src/authsignal_passkey.dart';
 import 'src/authsignal_push.dart';
 
-export 'src/types.dart' show AuthsignalResponse, TokenPayload;
+export 'src/types.dart' show AuthsignalResponse, TokenPayload, ErrorCode;
 
 class Authsignal {
   AuthsignalPasskey passkey;
