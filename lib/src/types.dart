@@ -1,7 +1,14 @@
 class AuthsignalResponse<T> {
   T? data;
   String? error;
-  String? errorCode;
+  ErrorCode? errorCode;
+}
+
+enum ErrorCode {
+  tokenRequired,
+  tokenExpired,
+  passkeySignInCanceled,
+  noPasskeyCredentialAvailable,
 }
 
 class TokenPayload {

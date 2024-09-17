@@ -73,13 +73,13 @@ class AuthsignalPasskey {
       switch (ex.message) {
         case 'SIGN_IN_CANCELED':
           {
-            response.errorCode = 'passkeySignInCanceled';
+            response.errorCode = ErrorCode.passkeySignInCanceled;
             response.error = 'Passkey sign-in canceled';
           }
 
         case 'SIGN_IN_NO_CREDENTIAL':
           {
-            response.errorCode = 'noPasskeyCredentialAvailable';
+            response.errorCode = ErrorCode.noPasskeyCredentialAvailable;
             response.error = 'No passkey credential available';
           }
 
