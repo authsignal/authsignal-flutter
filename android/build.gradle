@@ -49,7 +49,6 @@ android {
     }
 
     dependencies {
-        implementation 'com.authsignal:authsignal-push-android:0.2.10'
-        implementation 'com.authsignal:authsignal-passkey-android:0.1.10'
+        implementation 'com.authsignal:authsignal-android:1.0.11'
     }
 }
