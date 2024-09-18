@@ -2,8 +2,12 @@ package com.authsignal.authsignal_flutter
 
 import android.app.Activity
 import android.content.Context
+import com.authsignal.TokenCache
+import com.authsignal.email.AuthsignalEmail
 import com.authsignal.passkey.AuthsignalPasskey
 import com.authsignal.push.AuthsignalPush
+import com.authsignal.sms.AuthsignalSMS
+import com.authsignal.totp.AuthsignalTOTP
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -18,6 +22,9 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
   private lateinit var passkey: AuthsignalPasskey
   private lateinit var push: AuthsignalPush
+  private lateinit var email: AuthsignalEmail
+  private lateinit var sms: AuthsignalSMS
+  private lateinit var totp: AuthsignalTOTP
 
   private var activity: Activity? = null
   private var context: Context? = null
@@ -186,6 +193,187 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
             result.success(it.data)
           }
         }
+      }
+
+      "email.initialize" -> {
+        val tenantID = call.argument<String>("tenantID")!!
+        val baseURL = call.argument<String>("baseURL")!!
+
+        email = AuthsignalEmail(tenantID, baseURL)
+
+        result.success(null)
+      }
+
+      "email.enroll" -> {
+        val emailAddress = call.argument<String>("email")!!
+
+        email.enrollAsync(emailAddress).thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("enrollError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "email.challenge" -> {
+        email.challengeAsync().thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("challengeError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "challengeId" to it.data!!.challengeId,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "email.verify" -> {
+        val code = call.argument<String>("code")!!
+
+        email.verifyAsync(code).thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("verifyError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "isVerified" to it.data!!.isVerified,
+              "token" to it.data!!.token,
+              "failureReason" to it.data!!.failureReason,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "sms.initialize" -> {
+        val tenantID = call.argument<String>("tenantID")!!
+        val baseURL = call.argument<String>("baseURL")!!
+
+        sms = AuthsignalSMS(tenantID, baseURL)
+
+        result.success(null)
+      }
+
+      "sms.enroll" -> {
+        val phoneNumber = call.argument<String>("phoneNumber")!!
+
+        sms.enrollAsync(phoneNumber).thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("enrollError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "sms.challenge" -> {
+        sms.challengeAsync().thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("challengeError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "challengeId" to it.data!!.challengeId,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "sms.verify" -> {
+        val code = call.argument<String>("code")!!
+
+        sms.verifyAsync(code).thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("verifyError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "isVerified" to it.data!!.isVerified,
+              "token" to it.data!!.token,
+              "failureReason" to it.data!!.failureReason,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "totp.initialize" -> {
+        val tenantID = call.argument<String>("tenantID")!!
+        val baseURL = call.argument<String>("baseURL")!!
+
+        totp = AuthsignalTOTP(tenantID, baseURL)
+
+        result.success(null)
+      }
+
+      "totp.enroll" -> {
+        totp.enrollAsync().thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("enrollError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
+              "uri" to it.data!!.uri,
+              "secret" to it.data!!.secret,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "totp.verify" -> {
+        val code = call.argument<String>("code")!!
+
+        totp.verifyAsync(code).thenAcceptAsync {
+          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
+            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
+          } else if (it.error != null) {
+            result.error("verifyError", it.error!!, "")
+          } else {
+            val data = mapOf(
+              "isVerified" to it.data!!.isVerified,
+              "token" to it.data!!.token,
+              "failureReason" to it.data!!.failureReason,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "setToken" -> {
+        val token = call.argument<String>("tenantID")!!
+
+        TokenCache.shared.token = token
+
+        result.success("token_set")
       }
 
       else -> {
