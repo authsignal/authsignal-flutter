@@ -116,3 +116,71 @@ class PushChallenge {
     );
   }
 }
+
+class EnrollResponse {
+  final String userAuthenticatorId;
+
+  EnrollResponse({
+    required this.userAuthenticatorId,
+  });
+
+  factory EnrollResponse.fromMap(Map<String, dynamic> map) {
+    return EnrollResponse(
+      userAuthenticatorId: map['userAuthenticatorId'],
+    );
+  }
+}
+
+class EnrollTotpResponse {
+  final String userAuthenticatorId;
+  final String uri;
+  final String secret;
+
+  EnrollTotpResponse({
+    required this.userAuthenticatorId,
+    required this.uri,
+    required this.secret,
+  });
+
+  factory EnrollTotpResponse.fromMap(Map<String, dynamic> map) {
+    return EnrollTotpResponse(
+      userAuthenticatorId: map['userAuthenticatorId'],
+      uri: map['uri'],
+      secret: map['secret'],
+    );
+  }
+}
+
+class ChallengeResponse {
+  final String challengeId;
+
+  ChallengeResponse({
+    required this.challengeId,
+  });
+
+  factory ChallengeResponse.fromMap(Map<String, dynamic> map) {
+    return ChallengeResponse(
+      challengeId: map['challengeId'],
+    );
+  }
+}
+
+class VerifyResponse {
+  final bool isVerified;
+  final String? token;
+  final String? failureReason;
+
+  VerifyResponse({
+    required this.isVerified,
+    required this.token,
+    required this.failureReason,
+  });
+
+  factory VerifyResponse.fromMap(Map<String, dynamic> map) {
+    return VerifyResponse(
+      isVerified: map['isVerified'],
+      token: map['token'],
+      failureReason: map['failureReason'],
+    );
+  }
+}
