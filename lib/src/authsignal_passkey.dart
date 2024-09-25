@@ -12,31 +12,29 @@ class AuthsignalPasskey {
   final String tenantID;
   final String baseURL;
 
-  AuthsignalPasskey(this.tenantID, {String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalPasskey({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
-  Future<AuthsignalResponse<SignUpResponse>> signUp(String token, {String? username, String? displayName}) async {
+  Future<AuthsignalResponse<SignUpResponse>> signUp({String? token, String? username, String? displayName}) async {
     await _ensureModuleIsInitialized();
 
     var arguments = <String, dynamic>{'token': token};
     arguments['username'] = username;
     arguments['displayName'] = displayName;
 
-    var response = AuthsignalResponse<SignUpResponse>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('passkey.signUp', arguments);
 
       if (data != null) {
-        response.data = SignUpResponse.fromMap(data);
+        return AuthsignalResponse(data: SignUpResponse.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<AuthsignalResponse<SignInResponse>> signIn(
@@ -49,12 +47,10 @@ class AuthsignalPasskey {
     arguments['autofill'] = autofill;
     arguments['preferImmediatelyAvailableCredentials'] = preferImmediatelyAvailableCredentials;
 
-    var response = AuthsignalResponse<SignInResponse>();
-
     try {
       if (autofill) {
         if (_autofillRequestPending) {
-          return Future.value(response);
+          return Future.value(AuthsignalResponse(data: null));
         } else {
           _autofillRequestPending = true;
         }
@@ -65,32 +61,15 @@ class AuthsignalPasskey {
       _autofillRequestPending = false;
 
       if (data != null) {
-        response.data = SignInResponse.fromMap(data);
+        return AuthsignalResponse(data: SignInResponse.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
     } on PlatformException catch (ex) {
       _autofillRequestPending = false;
 
-      switch (ex.message) {
-        case 'SIGN_IN_CANCELED':
-          {
-            response.errorCode = ErrorCode.passkeySignInCanceled;
-            response.error = 'Passkey sign-in canceled';
-          }
-
-        case 'SIGN_IN_NO_CREDENTIAL':
-          {
-            response.errorCode = ErrorCode.noPasskeyCredentialAvailable;
-            response.error = 'No passkey credential available';
-          }
-
-        default:
-          {
-            response.error = ex.message;
-          }
-      }
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<void> cancel() async {
@@ -104,17 +83,13 @@ class AuthsignalPasskey {
   Future<AuthsignalResponse<bool>> isAvailableOnDevice() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<bool>();
-
     try {
       final data = await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
 
-      response.data = data;
-    } catch (ex) {
-      response.error = ex.toString();
+      return AuthsignalResponse(data: data);
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<void> _ensureModuleIsInitialized() async {

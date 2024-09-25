@@ -9,7 +9,7 @@ class AuthsignalPush {
 
   bool _initialized = false;
 
-  AuthsignalPush(this.tenantID, {String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalPush({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
@@ -17,19 +17,17 @@ class AuthsignalPush {
   Future<AuthsignalResponse<PushCredential?>> getCredential() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<PushCredential?>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getCredential');
 
       if (data != null) {
-        response.data = PushCredential.fromMap(data);
+        return AuthsignalResponse(data: PushCredential.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<AuthsignalResponse<bool>> addCredential({String? token}) async {
@@ -37,72 +35,70 @@ class AuthsignalPush {
 
     var arguments = <String, dynamic>{'token': token};
 
-    var response = AuthsignalResponse<bool>();
-
     try {
       final data = await methodChannel.invokeMethod<bool>('push.addCredential', arguments);
 
-      response.data = data;
-    } catch (ex) {
-      response.error = ex.toString();
+      if (data != null) {
+        return AuthsignalResponse(data: data);
+      } else {
+        return AuthsignalResponse(data: null);
+      }
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<AuthsignalResponse<bool>> removeCredential() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<bool>();
-
     try {
       final data = await methodChannel.invokeMethod<bool>('push.removeCredential');
 
-      response.data = data;
-    } catch (ex) {
-      response.error = ex.toString();
+      if (data != null) {
+        return AuthsignalResponse(data: data);
+      } else {
+        return AuthsignalResponse(data: null);
+      }
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<AuthsignalResponse<PushChallenge?>> getChallenge() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<PushChallenge?>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getChallenge');
 
       if (data != null) {
-        response.data = PushChallenge.fromMap(data);
+        return AuthsignalResponse(data: PushChallenge.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
-  Future<AuthsignalResponse<bool>> updateChallenge(String challengeId, bool approved,
-      {String? verificationCode}) async {
+  Future<AuthsignalResponse<bool>> updateChallenge(
+      {required String challengeId, required bool approved, String? verificationCode}) async {
     await _ensureModuleIsInitialized();
 
     var arguments = <String, dynamic>{'challengeId': challengeId, 'approved': approved};
 
     arguments['verificationCode'] = verificationCode;
 
-    var response = AuthsignalResponse<bool>();
-
     try {
       final data = await methodChannel.invokeMethod<bool>('push.updateChallenge', arguments);
 
-      response.data = data;
-    } catch (ex) {
-      response.error = ex.toString();
+      if (data != null) {
+        return AuthsignalResponse(data: data);
+      } else {
+        return AuthsignalResponse(data: null);
+      }
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<void> _ensureModuleIsInitialized() async {

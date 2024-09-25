@@ -7,7 +7,7 @@ void main() {
 
   const MethodChannel channel = MethodChannel('authsignal');
 
-  Authsignal authsignal = Authsignal('mock_tenant_id');
+  Authsignal authsignal = Authsignal(tenantID: 'mock_tenant_id');
 
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -38,7 +38,7 @@ void main() {
   });
 
   test('passkey.signUp', () async {
-    final result = await authsignal.passkey.signUp('initial_token', username: 'bob');
+    final result = await authsignal.passkey.signUp(token: 'initial_token', username: 'bob');
 
     expect(result.data!.token, 'result_token');
   });

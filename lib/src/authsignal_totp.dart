@@ -9,7 +9,7 @@ class AuthsignalTotp {
 
   bool _initialized = false;
 
-  AuthsignalTotp(this.tenantID, {String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalTotp({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
@@ -17,19 +17,17 @@ class AuthsignalTotp {
   Future<AuthsignalResponse<EnrollTotpResponse>> enroll() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<EnrollTotpResponse>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('totp.enroll');
 
       if (data != null) {
-        response.data = EnrollTotpResponse.fromMap(data);
+        return AuthsignalResponse(data: EnrollTotpResponse.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<AuthsignalResponse<VerifyResponse>> verify(String code) async {
@@ -37,19 +35,17 @@ class AuthsignalTotp {
 
     var arguments = <String, dynamic>{'code': code};
 
-    var response = AuthsignalResponse<VerifyResponse>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('totp.verify', arguments);
 
       if (data != null) {
-        response.data = VerifyResponse.fromMap(data);
+        return AuthsignalResponse(data: VerifyResponse.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<void> _ensureModuleIsInitialized() async {

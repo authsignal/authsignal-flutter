@@ -35,13 +35,10 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let displayName = arguments["displayName"] as? String
 
       Task.init {
-        let response = await self.passkey!.signUp(token: token, username: username)
+        let response = await self.passkey!.signUp(token: token, username: username, displayName: displayName)
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "signUpError", message: response.error, details: "")
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
           result(error)
         } else {
           let data: [String: Any?] = [
@@ -67,11 +64,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           preferImmediatelyAvailableCredentials: preferImmediatelyAvailableCredentials
         )
         
-        if (response.errorCode == "SIGN_IN_CANCELED") {
-          let error = FlutterError(code: "signInCanceled", message: "SIGN_IN_CANCELED", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "signInError", message: response.error, details: "")
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
           result(error)
         } else {
           let data: [String: Any?] = [
@@ -95,7 +89,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         let response = await self.passkey!.isAvailableOnDevice()
         
         if response.error != nil {
-          let error = FlutterError(code: "isAvailableOnDeviceError", message: response.error, details: "");
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           result(response.data)
@@ -116,7 +110,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         let response = await self.push!.getCredential()
         
         if response.error != nil {
-          let error = FlutterError(code: "getCredentialError", message: response.error, details: "");
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else if let data = response.data {
           let credential: [String: String?] = [
@@ -125,7 +119,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "lastAuthenticatedAt": data.lastAuthenticatedAt,
           ]
 
-          result(data)
+          result(credential)
         } else {
           result(nil)
         }
@@ -138,11 +132,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.push!.addCredential(token: token)
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "addCredentialError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           result(response.data)
@@ -154,7 +145,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         let response = await self.push!.removeCredential()
         
         if response.error != nil {
-          let error = FlutterError(code: "removeCredentialError", message: response.error, details: "");
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           result(response.data)
@@ -166,7 +157,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         let response = await self.push!.getChallenge()
         
         if response.error != nil {
-          let error = FlutterError(code: "getChallengeError", message: response.error, details: "");
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else if let challenge = response.data as? PushChallenge {
           let data: [String: String?] = [
@@ -198,7 +189,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         )
         
         if response.error != nil {
-          let error = FlutterError(code: "updateChallengeError", message: response.error, details: "");
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           result(response.data)
@@ -221,11 +212,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.email!.enroll(email: email)
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "enrollError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let enrollResponse: [String: Any?] = [
@@ -240,11 +228,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.email!.challenge()
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "challengeError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let challengeResponse: [String: Any?] = [
@@ -262,11 +247,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.email!.verify(code: code)
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "verifyError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let verifyResponse: [String: Any?] = [
@@ -295,11 +277,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.sms!.enroll(phoneNumber: phoneNumber)
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "enrollError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let enrollResponse: [String: Any?] = [
@@ -314,11 +293,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.sms!.challenge()
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "challengeError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let challengeResponse: [String: Any?] = [
@@ -336,11 +312,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.sms!.verify(code: code)
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "verifyError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let verifyResponse: [String: Any?] = [
@@ -364,11 +337,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.totp!.enroll()
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "enrollError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let enrollResponse: [String: String?] = [
@@ -388,11 +358,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       Task.init {
         let response = await self.totp!.verify(code: code)
         
-        if response.errorCode == "TOKEN_NOT_SET" {
-          let error = FlutterError(code: "tokenNotSetError", message: "TOKEN_NOT_SET", details: "")
-          result(error)
-        } else if response.error != nil {
-          let error = FlutterError(code: "verifyError", message: response.error, details: "");
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
           result(error)
         } else {
           let verifyResponse: [String: Any?] = [

@@ -55,10 +55,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val displayName = call.argument<String>("displayName")
 
         passkey.signUpAsync(token, username, displayName).thenApply {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("signUpError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "token" to it.data!!.token
@@ -74,16 +72,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val token = call.argument<String>("token")
 
         passkey.signInAsync(action, token).thenAcceptAsync {
-          if (it.errorType != null) {
-            if (it.errorType.equals("android.credentials.GetCredentialException.TYPE_NO_CREDENTIAL")) {
-              result.error("signInNoCredential", "SIGN_IN_NO_CREDENTIAL", "")
-            }
-
-            if (it.errorType.equals("android.credentials.GetCredentialException.TYPE_USER_CANCELED")) {
-              result.error("signInCanceled", "SIGN_IN_CANCELED", "")
-            }
-          } else if (it.error != null) {
-            result.error("signInError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "isVerified" to it.data!!.isVerified,
@@ -102,7 +92,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "passkey.isAvailableOnDevice" -> {
         passkey.isAvailableOnDeviceAsync().thenApply {
           if (it.error != null) {
-            result.error("isAvailableOnDeviceError", it.error!!, "")
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             result.success(it.data)
           }
@@ -121,7 +111,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "push.getCredential" -> {
         push.getCredentialAsync().thenAcceptAsync {
           if (it.error != null) {
-            result.error("getCredentialError", it.error!!, "")
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else if (it.data != null) {
             val data = mapOf(
               "credentialId" to it.data!!.credentialId,
@@ -140,10 +130,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val token = call.argument<String>("token")
 
         push.addCredentialAsync(token).thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("addCredentialError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             result.success(it.data)
           }
@@ -153,7 +141,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "push.removeCredential" -> {
         push.removeCredentialAsync().thenAcceptAsync {
           if (it.error != null) {
-            result.error("removeCredentialError", it.error!!, "")
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             result.success(it.data)
           }
@@ -163,7 +151,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "push.getChallenge" -> {
         push.getChallengeAsync().thenAcceptAsync {
           if (it.error != null) {
-            result.error("getChallengeError", it.error!!, "")
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else if (it.data != null) {
             val data = mapOf(
               "challengeId" to it.data!!.challengeId,
@@ -188,7 +176,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
         push.updateChallengeAsync(challengeId, approved, verificationCode).thenAcceptAsync {
           if (it.error != null) {
-            result.error("updateChallengeError", it.error!!, "")
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             result.success(it.data)
           }
@@ -208,10 +196,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val emailAddress = call.argument<String>("email")!!
 
         email.enrollAsync(emailAddress).thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("enrollError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "userAuthenticatorId" to it.data!!.userAuthenticatorId,
@@ -224,10 +210,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
       "email.challenge" -> {
         email.challengeAsync().thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("challengeError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "challengeId" to it.data!!.challengeId,
@@ -242,10 +226,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val code = call.argument<String>("code")!!
 
         email.verifyAsync(code).thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("verifyError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "isVerified" to it.data!!.isVerified,
@@ -271,10 +253,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val phoneNumber = call.argument<String>("phoneNumber")!!
 
         sms.enrollAsync(phoneNumber).thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("enrollError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "userAuthenticatorId" to it.data!!.userAuthenticatorId,
@@ -287,10 +267,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
       "sms.challenge" -> {
         sms.challengeAsync().thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("challengeError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "challengeId" to it.data!!.challengeId,
@@ -305,10 +283,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val code = call.argument<String>("code")!!
 
         sms.verifyAsync(code).thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("verifyError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "isVerified" to it.data!!.isVerified,
@@ -332,10 +308,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
       "totp.enroll" -> {
         totp.enrollAsync().thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("enrollError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "userAuthenticatorId" to it.data!!.userAuthenticatorId,
@@ -352,10 +326,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val code = call.argument<String>("code")!!
 
         totp.verifyAsync(code).thenAcceptAsync {
-          if (it.errorType != null && it.errorType.equals("TYPE_TOKEN_NOT_SET")) {
-            result.error("tokenNotSetError", "TOKEN_NOT_SET", "")
-          } else if (it.error != null) {
-            result.error("verifyError", it.error!!, "")
+          if (it.error != null) {
+            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
           } else {
             val data = mapOf(
               "isVerified" to it.data!!.isVerified,
@@ -369,7 +341,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "setToken" -> {
-        val token = call.argument<String>("tenantID")!!
+        val token = call.argument<String>("token")!!
 
         TokenCache.shared.token = token
 

@@ -16,12 +16,12 @@ class Authsignal {
   AuthsignalSms sms;
   AuthsignalTotp totp;
 
-  Authsignal(tenantID, {String? baseURL})
-      : passkey = AuthsignalPasskey(tenantID, baseURL: baseURL),
-        push = AuthsignalPush(tenantID, baseURL: baseURL),
-        email = AuthsignalEmail(tenantID, baseURL: baseURL),
-        sms = AuthsignalSms(tenantID, baseURL: baseURL),
-        totp = AuthsignalTotp(tenantID, baseURL: baseURL);
+  Authsignal({required String tenantID, String? baseURL})
+      : passkey = AuthsignalPasskey(tenantID: tenantID, baseURL: baseURL),
+        push = AuthsignalPush(tenantID: tenantID, baseURL: baseURL),
+        email = AuthsignalEmail(tenantID: tenantID, baseURL: baseURL),
+        sms = AuthsignalSms(tenantID: tenantID, baseURL: baseURL),
+        totp = AuthsignalTotp(tenantID: tenantID, baseURL: baseURL);
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');

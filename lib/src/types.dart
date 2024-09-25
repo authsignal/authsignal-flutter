@@ -1,14 +1,32 @@
+import 'package:flutter/services.dart';
+
 class AuthsignalResponse<T> {
   T? data;
   String? error;
-  ErrorCode? errorCode;
+  String? errorCode;
+
+  AuthsignalResponse({required this.data});
+
+  AuthsignalResponse.withError({required this.error, required this.errorCode});
+
+  factory AuthsignalResponse.fromError(PlatformException err) {
+    return AuthsignalResponse.withError(
+      error: err.message,
+      errorCode: err.code,
+    );
+  }
 }
 
 enum ErrorCode {
-  tokenRequired,
-  tokenExpired,
-  passkeySignInCanceled,
-  noPasskeyCredentialAvailable,
+  userCanceled('user_canceled'),
+  noCredential('no_credential'),
+  tokenNotSet('token_not_set'),
+  tokenRequired('token_required'),
+  tokenInvalid('token_invalid');
+
+  const ErrorCode(this.value);
+
+  final String value;
 }
 
 class TokenPayload {
