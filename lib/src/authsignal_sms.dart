@@ -9,7 +9,7 @@ class AuthsignalSms {
 
   bool _initialized = false;
 
-  AuthsignalSms(this.tenantID, {String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalSms({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
@@ -18,38 +18,33 @@ class AuthsignalSms {
     await _ensureModuleIsInitialized();
 
     var arguments = <String, dynamic>{'phoneNumber': phoneNumber};
-
-    var response = AuthsignalResponse<EnrollResponse>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('sms.enroll', arguments);
 
       if (data != null) {
-        response.data = EnrollResponse.fromMap(data);
+        return AuthsignalResponse(data: EnrollResponse.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<AuthsignalResponse<ChallengeResponse>> challenge() async {
     await _ensureModuleIsInitialized();
 
-    var response = AuthsignalResponse<ChallengeResponse>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('sms.challenge');
 
       if (data != null) {
-        response.data = ChallengeResponse.fromMap(data);
+        return AuthsignalResponse(data: ChallengeResponse.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<AuthsignalResponse<VerifyResponse>> verify(String code) async {
@@ -57,19 +52,17 @@ class AuthsignalSms {
 
     var arguments = <String, dynamic>{'code': code};
 
-    var response = AuthsignalResponse<VerifyResponse>();
-
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('sms.verify', arguments);
 
       if (data != null) {
-        response.data = VerifyResponse.fromMap(data);
+        return AuthsignalResponse(data: VerifyResponse.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
       }
-    } catch (ex) {
-      response.error = ex.toString();
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
     }
-
-    return response;
   }
 
   Future<void> _ensureModuleIsInitialized() async {
