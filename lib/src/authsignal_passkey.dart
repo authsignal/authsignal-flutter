@@ -5,20 +5,18 @@ import 'package:flutter/services.dart';
 
 import 'types.dart';
 
-bool _initialized = false;
 bool _autofillRequestPending = false;
 
 class AuthsignalPasskey {
-  final String tenantID;
-  final String baseURL;
+  final AsyncCallback initCheck;
 
-  AuthsignalPasskey({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalPasskey({required this.initCheck});
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
   Future<AuthsignalResponse<SignUpResponse>> signUp({String? token, String? username, String? displayName}) async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     var arguments = <String, dynamic>{'token': token};
     arguments['username'] = username;
@@ -39,7 +37,7 @@ class AuthsignalPasskey {
 
   Future<AuthsignalResponse<SignInResponse>> signIn(
       {String? action, String? token, bool autofill = false, preferImmediatelyAvailableCredentials = true}) async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     var arguments = <String, dynamic>{};
     arguments['action'] = action;
@@ -73,7 +71,7 @@ class AuthsignalPasskey {
   }
 
   Future<void> cancel() async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     if (Platform.isIOS) {
       await methodChannel.invokeMethod('passkey.cancel');
@@ -81,7 +79,7 @@ class AuthsignalPasskey {
   }
 
   Future<AuthsignalResponse<bool>> isAvailableOnDevice() async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     try {
       final data = await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
@@ -89,16 +87,6 @@ class AuthsignalPasskey {
       return AuthsignalResponse(data: data);
     } on PlatformException catch (ex) {
       return AuthsignalResponse.fromError(ex);
-    }
-  }
-
-  Future<void> _ensureModuleIsInitialized() async {
-    if (!_initialized) {
-      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
-
-      await methodChannel.invokeMethod<String>('passkey.initialize', arguments);
-
-      _initialized = true;
     }
   }
 }

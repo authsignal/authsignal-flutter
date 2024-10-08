@@ -4,18 +4,15 @@ import 'package:flutter/services.dart';
 import 'types.dart';
 
 class AuthsignalPush {
-  final String tenantID;
-  final String baseURL;
+  final AsyncCallback initCheck;
 
-  bool _initialized = false;
-
-  AuthsignalPush({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalPush({required this.initCheck});
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
   Future<AuthsignalResponse<PushCredential?>> getCredential() async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getCredential');
@@ -31,7 +28,7 @@ class AuthsignalPush {
   }
 
   Future<AuthsignalResponse<bool>> addCredential({String? token}) async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     var arguments = <String, dynamic>{'token': token};
 
@@ -49,7 +46,7 @@ class AuthsignalPush {
   }
 
   Future<AuthsignalResponse<bool>> removeCredential() async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     try {
       final data = await methodChannel.invokeMethod<bool>('push.removeCredential');
@@ -65,7 +62,7 @@ class AuthsignalPush {
   }
 
   Future<AuthsignalResponse<PushChallenge?>> getChallenge() async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getChallenge');
@@ -82,7 +79,7 @@ class AuthsignalPush {
 
   Future<AuthsignalResponse<bool>> updateChallenge(
       {required String challengeId, required bool approved, String? verificationCode}) async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     var arguments = <String, dynamic>{'challengeId': challengeId, 'approved': approved};
 
@@ -98,16 +95,6 @@ class AuthsignalPush {
       }
     } on PlatformException catch (ex) {
       return AuthsignalResponse.fromError(ex);
-    }
-  }
-
-  Future<void> _ensureModuleIsInitialized() async {
-    if (!_initialized) {
-      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
-
-      await methodChannel.invokeMethod<String>('push.initialize', arguments);
-
-      _initialized = true;
     }
   }
 }

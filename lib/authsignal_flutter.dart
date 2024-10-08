@@ -10,18 +10,34 @@ import 'src/authsignal_totp.dart';
 export 'src/types.dart' show AuthsignalResponse, TokenPayload, ErrorCode;
 
 class Authsignal {
-  AuthsignalPasskey passkey;
-  AuthsignalPush push;
-  AuthsignalEmail email;
-  AuthsignalSms sms;
-  AuthsignalTotp totp;
+  String tenantID;
+  String baseURL;
 
-  Authsignal({required String tenantID, String? baseURL})
-      : passkey = AuthsignalPasskey(tenantID: tenantID, baseURL: baseURL),
-        push = AuthsignalPush(tenantID: tenantID, baseURL: baseURL),
-        email = AuthsignalEmail(tenantID: tenantID, baseURL: baseURL),
-        sms = AuthsignalSms(tenantID: tenantID, baseURL: baseURL),
-        totp = AuthsignalTotp(tenantID: tenantID, baseURL: baseURL);
+  late AuthsignalPasskey passkey;
+  late AuthsignalPush push;
+  late AuthsignalEmail email;
+  late AuthsignalSms sms;
+  late AuthsignalTotp totp;
+
+  bool _initialized = false;
+
+  Authsignal({required this.tenantID, this.baseURL = "https://api.authsignal.com/v1"}) {
+    passkey = AuthsignalPasskey(initCheck: initCheck);
+    push = AuthsignalPush(initCheck: initCheck);
+    email = AuthsignalEmail(initCheck: initCheck);
+    sms = AuthsignalSms(initCheck: initCheck);
+    totp = AuthsignalTotp(initCheck: initCheck);
+  }
+
+  Future<void> initCheck() async {
+    if (!_initialized) {
+      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
+
+      await methodChannel.invokeMethod<String>('initialize', arguments);
+
+      _initialized = true;
+    }
+  }
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');

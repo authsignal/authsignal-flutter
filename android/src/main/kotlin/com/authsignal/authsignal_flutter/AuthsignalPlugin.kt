@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import com.authsignal.TokenCache
 import com.authsignal.email.AuthsignalEmail
+import com.authsignal.models.AuthsignalResponse
 import com.authsignal.passkey.AuthsignalPasskey
 import com.authsignal.push.AuthsignalPush
 import com.authsignal.sms.AuthsignalSMS
@@ -14,8 +15,10 @@ import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
   private lateinit var channel : MethodChannel
@@ -28,6 +31,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
   private var activity: Activity? = null
   private var context: Context? = null
+  private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     channel = MethodChannel(binding.binaryMessenger, "authsignal")
@@ -36,15 +40,20 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
     context = binding.applicationContext
   }
 
-  override fun onMethodCall(call: MethodCall, result: Result) {
+  override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
     when(call.method) {
-      "passkey.initialize" -> {
+      "initialize" -> {
         val tenantID = call.argument<String>("tenantID")!!
         val baseURL = call.argument<String>("baseURL")!!
 
-        if (context != null && activity != null) {
-          passkey = AuthsignalPasskey(tenantID, baseURL, context!!, activity!!)
+        activity?.let {
+          passkey = AuthsignalPasskey(tenantID, baseURL, it)
         }
+
+        push = AuthsignalPush(tenantID, baseURL)
+        email = AuthsignalEmail(tenantID, baseURL)
+        sms = AuthsignalSMS(tenantID, baseURL)
+        totp = AuthsignalTOTP(tenantID, baseURL)
 
         result.success(null)
       }
@@ -54,12 +63,12 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val username = call.argument<String>("username")
         val displayName = call.argument<String>("displayName")
 
-        passkey.signUpAsync(token, username, displayName).thenApply {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = passkey.signUp(token, username, displayName)
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "token" to it.data!!.token
+              "token" to it.token
             )
 
             result.success(data)
@@ -71,17 +80,17 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val action = call.argument<String>("action")
         val token = call.argument<String>("token")
 
-        passkey.signInAsync(action, token).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = passkey.signIn(action, token)
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "isVerified" to it.data!!.isVerified,
-              "token" to it.data!!.token,
-              "userId" to it.data!!.userId,
-              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
-              "username" to it.data!!.username,
-              "displayName" to it.data!!.displayName
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "userId" to it.userId,
+              "userAuthenticatorId" to it.userAuthenticatorId,
+              "username" to it.username,
+              "displayName" to it.displayName
             )
 
             result.success(data)
@@ -90,38 +99,27 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "passkey.isAvailableOnDevice" -> {
-        passkey.isAvailableOnDeviceAsync().thenApply {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
-            result.success(it.data)
+        coroutineScope.launch {
+          val response = passkey.isAvailableOnDevice()
+
+          handleResponse(response, result)?.let {
+            result.success(response.data)
           }
         }
       }
 
-      "push.initialize" -> {
-        val tenantID = call.argument<String>("tenantID")!!
-        val baseURL = call.argument<String>("baseURL")!!
-
-        push = AuthsignalPush(tenantID, baseURL)
-
-        result.success(null)
-      }
-
       "push.getCredential" -> {
-        push.getCredentialAsync().thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else if (it.data != null) {
+        coroutineScope.launch {
+          val response = push.getCredential()
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "credentialId" to it.data!!.credentialId,
-              "createdAt" to it.data!!.createdAt,
-              "lastAuthenticatedAt" to it.data!!.lastAuthenticatedAt
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
             )
 
             result.success(data)
-          } else {
-            result.success(null)
           }
         }
       }
@@ -129,42 +127,40 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "push.addCredential" -> {
         val token = call.argument<String>("token")
 
-        push.addCredentialAsync(token).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
-            result.success(it.data)
+        coroutineScope.launch {
+          val response = push.addCredential(token)
+
+          handleResponse(response, result)?.let {
+            result.success(it)
           }
         }
       }
 
       "push.removeCredential" -> {
-        push.removeCredentialAsync().thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
-            result.success(it.data)
+        coroutineScope.launch {
+          val response = push.removeCredential()
+
+          handleResponse(response, result)?.let {
+            result.success(it)
           }
         }
       }
 
       "push.getChallenge" -> {
-        push.getChallengeAsync().thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else if (it.data != null) {
+        coroutineScope.launch {
+          val response = push.getChallenge()
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "challengeId" to it.data!!.challengeId,
-              "actionCode" to it.data!!.actionCode,
-              "idempotencyKey" to it.data!!.idempotencyKey,
-              "ipAddress" to it.data!!.ipAddress,
-              "deviceId" to it.data!!.deviceId,
-              "userAgent" to it.data!!.userAgent
+              "challengeId" to it.challengeId,
+              "actionCode" to it.actionCode,
+              "idempotencyKey" to it.idempotencyKey,
+              "ipAddress" to it.ipAddress,
+              "deviceId" to it.deviceId,
+              "userAgent" to it.userAgent
             )
 
             result.success(data)
-          } else {
-            result.success(null)
           }
         }
       }
@@ -174,33 +170,24 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val approved = call.argument<Boolean>("approved")!!
         val verificationCode = call.argument<String>("verificationCode")
 
-        push.updateChallengeAsync(challengeId, approved, verificationCode).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
-            result.success(it.data)
+        coroutineScope.launch {
+          val response = push.updateChallenge(challengeId, approved, verificationCode)
+
+          handleResponse(response, result)?.let {
+            result.success(it)
           }
         }
-      }
-
-      "email.initialize" -> {
-        val tenantID = call.argument<String>("tenantID")!!
-        val baseURL = call.argument<String>("baseURL")!!
-
-        email = AuthsignalEmail(tenantID, baseURL)
-
-        result.success(null)
       }
 
       "email.enroll" -> {
         val emailAddress = call.argument<String>("email")!!
 
-        email.enrollAsync(emailAddress).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = email.enroll(emailAddress)
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
+              "userAuthenticatorId" to it.userAuthenticatorId,
             )
 
             result.success(data)
@@ -209,12 +196,12 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "email.challenge" -> {
-        email.challengeAsync().thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = email.challenge()
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "challengeId" to it.data!!.challengeId,
+              "challengeId" to it.challengeId,
             )
 
             result.success(data)
@@ -225,14 +212,14 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "email.verify" -> {
         val code = call.argument<String>("code")!!
 
-        email.verifyAsync(code).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = email.verify(code)
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "isVerified" to it.data!!.isVerified,
-              "token" to it.data!!.token,
-              "failureReason" to it.data!!.failureReason,
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "failureReason" to it.failureReason,
             )
 
             result.success(data)
@@ -240,24 +227,15 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "sms.initialize" -> {
-        val tenantID = call.argument<String>("tenantID")!!
-        val baseURL = call.argument<String>("baseURL")!!
-
-        sms = AuthsignalSMS(tenantID, baseURL)
-
-        result.success(null)
-      }
-
       "sms.enroll" -> {
         val phoneNumber = call.argument<String>("phoneNumber")!!
 
-        sms.enrollAsync(phoneNumber).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = sms.enroll(phoneNumber)
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
+              "userAuthenticatorId" to it.userAuthenticatorId,
             )
 
             result.success(data)
@@ -266,12 +244,12 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "sms.challenge" -> {
-        sms.challengeAsync().thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = sms.challenge()
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "challengeId" to it.data!!.challengeId,
+              "challengeId" to it.challengeId,
             )
 
             result.success(data)
@@ -282,14 +260,14 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "sms.verify" -> {
         val code = call.argument<String>("code")!!
 
-        sms.verifyAsync(code).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = sms.verify(code)
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "isVerified" to it.data!!.isVerified,
-              "token" to it.data!!.token,
-              "failureReason" to it.data!!.failureReason,
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "failureReason" to it.failureReason,
             )
 
             result.success(data)
@@ -297,24 +275,15 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "totp.initialize" -> {
-        val tenantID = call.argument<String>("tenantID")!!
-        val baseURL = call.argument<String>("baseURL")!!
-
-        totp = AuthsignalTOTP(tenantID, baseURL)
-
-        result.success(null)
-      }
-
       "totp.enroll" -> {
-        totp.enrollAsync().thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = totp.enroll()
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "userAuthenticatorId" to it.data!!.userAuthenticatorId,
-              "uri" to it.data!!.uri,
-              "secret" to it.data!!.secret,
+              "userAuthenticatorId" to it.userAuthenticatorId,
+              "uri" to it.uri,
+              "secret" to it.secret,
             )
 
             result.success(data)
@@ -325,14 +294,14 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "totp.verify" -> {
         val code = call.argument<String>("code")!!
 
-        totp.verifyAsync(code).thenAcceptAsync {
-          if (it.error != null) {
-            result.error(it.errorType ?: "unexpected_error", it.error!!, "")
-          } else {
+        coroutineScope.launch {
+          val response = totp.verify(code)
+
+          handleResponse(response, result)?.let {
             val data = mapOf(
-              "isVerified" to it.data!!.isVerified,
-              "token" to it.data!!.token,
-              "failureReason" to it.data!!.failureReason,
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "failureReason" to it.failureReason,
             )
 
             result.success(data)
@@ -372,5 +341,19 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
   override fun onDetachedFromActivity() {
     activity = null
+  }
+
+  private fun <T>handleResponse(response: AuthsignalResponse<T>, result: MethodChannel.Result): T? {
+    return if (response.error != null) {
+      result.error(response.errorType ?: "unexpected_error", response.error!!, "")
+
+      null
+    } else if (response.data == null) {
+      result.success(null)
+
+      null
+    } else {
+      response.data
+    }
   }
 }

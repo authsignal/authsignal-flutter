@@ -4,18 +4,15 @@ import 'package:flutter/services.dart';
 import 'types.dart';
 
 class AuthsignalTotp {
-  final String tenantID;
-  final String baseURL;
+  final AsyncCallback initCheck;
 
-  bool _initialized = false;
-
-  AuthsignalTotp({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalTotp({required this.initCheck});
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
   Future<AuthsignalResponse<EnrollTotpResponse>> enroll() async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('totp.enroll');
@@ -31,7 +28,7 @@ class AuthsignalTotp {
   }
 
   Future<AuthsignalResponse<VerifyResponse>> verify(String code) async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     var arguments = <String, dynamic>{'code': code};
 
@@ -45,16 +42,6 @@ class AuthsignalTotp {
       }
     } on PlatformException catch (ex) {
       return AuthsignalResponse.fromError(ex);
-    }
-  }
-
-  Future<void> _ensureModuleIsInitialized() async {
-    if (!_initialized) {
-      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
-
-      await methodChannel.invokeMethod<String>('totp.initialize', arguments);
-
-      _initialized = true;
     }
   }
 }
