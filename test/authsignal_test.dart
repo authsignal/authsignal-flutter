@@ -14,7 +14,7 @@ void main() {
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
-          case "passkey.initialize":
+          case "initialize":
             {
               return "";
             }

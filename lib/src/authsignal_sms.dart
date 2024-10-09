@@ -4,18 +4,15 @@ import 'package:flutter/services.dart';
 import 'types.dart';
 
 class AuthsignalSms {
-  final String tenantID;
-  final String baseURL;
+  final AsyncCallback initCheck;
 
-  bool _initialized = false;
-
-  AuthsignalSms({required this.tenantID, String? baseURL}) : baseURL = baseURL ?? "https://api.authsignal.com/v1";
+  AuthsignalSms({required this.initCheck});
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
   Future<AuthsignalResponse<EnrollResponse>> enroll(String phoneNumber) async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     var arguments = <String, dynamic>{'phoneNumber': phoneNumber};
     try {
@@ -32,7 +29,7 @@ class AuthsignalSms {
   }
 
   Future<AuthsignalResponse<ChallengeResponse>> challenge() async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>('sms.challenge');
@@ -48,7 +45,7 @@ class AuthsignalSms {
   }
 
   Future<AuthsignalResponse<VerifyResponse>> verify(String code) async {
-    await _ensureModuleIsInitialized();
+    await initCheck();
 
     var arguments = <String, dynamic>{'code': code};
 
@@ -62,16 +59,6 @@ class AuthsignalSms {
       }
     } on PlatformException catch (ex) {
       return AuthsignalResponse.fromError(ex);
-    }
-  }
-
-  Future<void> _ensureModuleIsInitialized() async {
-    if (!_initialized) {
-      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
-
-      await methodChannel.invokeMethod<String>('sms.initialize', arguments);
-
-      _initialized = true;
     }
   }
 }

@@ -45,10 +45,10 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 24
+        minSdkVersion 23
     }
 
     dependencies {
-        implementation 'com.authsignal:authsignal-android:1.0.15'
+        implementation 'com.authsignal:authsignal-android:1.1.2'
     }
 }

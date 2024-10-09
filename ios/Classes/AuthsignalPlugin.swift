@@ -19,12 +19,16 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
-    case "passkey.initialize":
+    case "initialize":
       let arguments = call.arguments as! [String: Any]
       let tenantID = arguments["tenantID"] as! String
       let baseURL = arguments["baseURL"] as! String
       
       self.passkey = AuthsignalPasskey(tenantID: tenantID, baseURL: baseURL)
+      self.push = AuthsignalPush(tenantID: tenantID, baseURL: baseURL)
+      self.email = AuthsignalEmail(tenantID: tenantID, baseURL: baseURL)
+      self.sms = AuthsignalSMS(tenantID: tenantID, baseURL: baseURL)
+      self.totp = AuthsignalTOTP(tenantID: tenantID, baseURL: baseURL)
       
       result(nil)
 
@@ -95,15 +99,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           result(response.data)
         }
       }
-      
-    case "push.initialize":
-      let arguments = call.arguments as! [String: Any]
-      let tenantID = arguments["tenantID"] as! String
-      let baseURL = arguments["baseURL"] as! String
-      
-      self.push = AuthsignalPush(tenantID: tenantID, baseURL: baseURL)
-      
-      result(nil)
       
     case "push.getCredential":
       Task.init {
@@ -196,15 +191,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         }
       }
       
-    case "email.initialize":
-      let arguments = call.arguments as! [String: Any]
-      let tenantID = arguments["tenantID"] as! String
-      let baseURL = arguments["baseURL"] as! String
-      
-      self.email = AuthsignalEmail(tenantID: tenantID, baseURL: baseURL)
-      
-      result(nil)
-      
     case "email.enroll":
       let arguments = call.arguments as! [String: Any]
       let email = arguments["email"] as! String
@@ -261,15 +247,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         }
       }
       
-    case "sms.initialize":
-      let arguments = call.arguments as! [String: Any]
-      let tenantID = arguments["tenantID"] as! String
-      let baseURL = arguments["baseURL"] as! String
-      
-      self.sms = AuthsignalSMS(tenantID: tenantID, baseURL: baseURL)
-      
-      result(nil)
-      
     case "sms.enroll":
       let arguments = call.arguments as! [String: Any]
       let phoneNumber = arguments["phoneNumber"] as! String
@@ -325,13 +302,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           result(verifyResponse)
         }
       }
-
-    case "totp.initialize":
-      let arguments = call.arguments as! [String: Any]
-      let tenantID = arguments["tenantID"] as! String
-      let baseURL = arguments["baseURL"] as! String
-      
-      self.totp = AuthsignalTOTP(tenantID: tenantID, baseURL: baseURL)
       
     case "totp.enroll":
       Task.init {
