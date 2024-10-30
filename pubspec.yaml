@@ -1,6 +1,6 @@
 name: authsignal_flutter
 description: "The Authsignal Flutter SDK for Passkeys and Push Auth"
-version: 1.1.0
+version: 1.1.1
 homepage: "https://github.com/authsignal/authsignal-flutter"
 
 environment:
