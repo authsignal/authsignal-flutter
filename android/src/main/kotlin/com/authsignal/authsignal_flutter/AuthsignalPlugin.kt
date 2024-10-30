@@ -345,7 +345,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
   private fun <T>handleResponse(response: AuthsignalResponse<T>, result: MethodChannel.Result): T? {
     return if (response.error != null) {
-      result.error(response.errorType ?: "unexpected_error", response.error!!, "")
+      result.error(response.errorCode ?: "unexpected_error", response.error!!, "")
 
       null
     } else if (response.data == null) {
