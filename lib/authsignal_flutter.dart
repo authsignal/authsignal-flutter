@@ -6,6 +6,7 @@ import 'src/authsignal_push.dart';
 import 'src/authsignal_email.dart';
 import 'src/authsignal_sms.dart';
 import 'src/authsignal_totp.dart';
+import 'src/authsignal_whatsapp.dart';
 
 export 'src/types.dart' show AuthsignalResponse, TokenPayload, ErrorCode;
 
@@ -18,6 +19,7 @@ class Authsignal {
   late AuthsignalEmail email;
   late AuthsignalSms sms;
   late AuthsignalTotp totp;
+  late AuthsignalWhatsapp whatsapp;
 
   bool _initialized = false;
 
@@ -27,6 +29,7 @@ class Authsignal {
     email = AuthsignalEmail(initCheck: initCheck);
     sms = AuthsignalSms(initCheck: initCheck);
     totp = AuthsignalTotp(initCheck: initCheck);
+    whatsapp = AuthsignalWhatsapp(initCheck: initCheck);
   }
 
   Future<void> initCheck() async {
