@@ -10,6 +10,7 @@ import com.authsignal.passkey.AuthsignalPasskey
 import com.authsignal.push.AuthsignalPush
 import com.authsignal.sms.AuthsignalSMS
 import com.authsignal.totp.AuthsignalTOTP
+import com.authsignal.whatsapp.AuthsignalWhatsApp
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -29,6 +30,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
   private lateinit var email: AuthsignalEmail
   private lateinit var sms: AuthsignalSMS
   private lateinit var totp: AuthsignalTOTP
+  private lateinit var whatsapp: AuthsignalWhatsApp
   private lateinit var device: AuthsignalDevice
 
   private var activity: Activity? = null
@@ -56,6 +58,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         email = AuthsignalEmail(tenantID, baseURL)
         sms = AuthsignalSMS(tenantID, baseURL)
         totp = AuthsignalTOTP(tenantID, baseURL)
+        whatsapp = AuthsignalWhatsApp(tenantID, baseURL)
         device = AuthsignalDevice(tenantID, baseURL)
 
         result.success(null)
@@ -299,6 +302,38 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
         coroutineScope.launch {
           val response = totp.verify(code)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "failureReason" to it.failureReason,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "whatsapp.challenge" -> {
+        coroutineScope.launch {
+          val response = whatsapp.challenge()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "challengeId" to it.challengeId,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "whatsapp.verify" -> {
+        val code = call.argument<String>("code")!!
+
+        coroutineScope.launch {
+          val response = whatsapp.verify(code)
 
           handleResponse(response, result)?.let {
             val data = mapOf(
