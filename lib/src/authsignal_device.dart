@@ -10,7 +10,6 @@ class AuthsignalDevice {
     _channel = const MethodChannel('authsignal');
   }
 
-  /// Get the device credential for the current device
   Future<AuthsignalResponse<DeviceCredential?>> getCredential() async {
     try {
       await initCheck();
@@ -28,7 +27,6 @@ class AuthsignalDevice {
     }
   }
 
-  /// Add a device credential for the current device
   Future<AuthsignalResponse<DeviceCredential>> addCredential({
     String? token,
     String? deviceName,
@@ -55,7 +53,6 @@ class AuthsignalDevice {
     }
   }
 
-  /// Remove the device credential for the current device
   Future<AuthsignalResponse<bool>> removeCredential() async {
     try {
       await initCheck();
@@ -67,7 +64,6 @@ class AuthsignalDevice {
     }
   }
 
-  /// Get a pending device challenge
   Future<AuthsignalResponse<DeviceChallenge?>> getChallenge() async {
     try {
       await initCheck();
@@ -85,7 +81,6 @@ class AuthsignalDevice {
     }
   }
 
-  /// Claim a device challenge
   Future<AuthsignalResponse<ClaimChallengeResponse>> claimChallenge(
     String challengeId,
   ) async {
@@ -104,7 +99,6 @@ class AuthsignalDevice {
     }
   }
 
-  /// Update a device challenge (approve or deny)
   Future<AuthsignalResponse<bool>> updateChallenge(
     String challengeId,
     bool approved, {
@@ -126,7 +120,6 @@ class AuthsignalDevice {
     }
   }
 
-  /// Verify the device for authentication
   Future<AuthsignalResponse<VerifyDeviceResponse>> verify() async {
     try {
       await initCheck();

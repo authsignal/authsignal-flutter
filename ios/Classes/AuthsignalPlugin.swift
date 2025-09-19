@@ -370,7 +370,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let token = arguments["token"] as? String
       let deviceName = arguments["deviceName"] as? String
       let userAuthenticationRequired = arguments["userAuthenticationRequired"] as? Bool ?? false
-      // Note: iOS doesn't use timeout and authorizationType, these are Android-specific parameters
 
       Task.init {
         let response = await self.device!.addCredential(
