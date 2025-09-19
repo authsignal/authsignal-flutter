@@ -3,6 +3,7 @@ package com.authsignal.authsignal_flutter
 import android.app.Activity
 import android.content.Context
 import com.authsignal.TokenCache
+import com.authsignal.device.AuthsignalDevice
 import com.authsignal.email.AuthsignalEmail
 import com.authsignal.models.AuthsignalResponse
 import com.authsignal.passkey.AuthsignalPasskey
@@ -28,6 +29,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
   private lateinit var email: AuthsignalEmail
   private lateinit var sms: AuthsignalSMS
   private lateinit var totp: AuthsignalTOTP
+  private lateinit var device: AuthsignalDevice
 
   private var activity: Activity? = null
   private var context: Context? = null
@@ -54,6 +56,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         email = AuthsignalEmail(tenantID, baseURL)
         sms = AuthsignalSMS(tenantID, baseURL)
         totp = AuthsignalTOTP(tenantID, baseURL)
+        device = AuthsignalDevice(tenantID, baseURL)
 
         result.success(null)
       }
@@ -302,6 +305,126 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "isVerified" to it.isVerified,
               "token" to it.token,
               "failureReason" to it.failureReason,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.getCredential" -> {
+        coroutineScope.launch {
+          val response = device.getCredential()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.addCredential" -> {
+        val token = call.argument<String>("token")
+        val deviceName = call.argument<String>("deviceName")
+        val userAuthenticationRequired = call.argument<Boolean>("userAuthenticationRequired") ?: false
+        val timeout = call.argument<Int>("timeout") ?: 0
+        val authorizationType = call.argument<Int>("authorizationType") ?: 0
+
+        coroutineScope.launch {
+          val response = device.addCredential(token, deviceName, userAuthenticationRequired, timeout, authorizationType)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.removeCredential" -> {
+        coroutineScope.launch {
+          val response = device.removeCredential()
+
+          handleResponse(response, result)?.let {
+            result.success(it)
+          }
+        }
+      }
+
+      "device.getChallenge" -> {
+        coroutineScope.launch {
+          val response = device.getChallenge()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "challengeId" to it.challengeId,
+              "userId" to it.userId,
+              "actionCode" to it.actionCode,
+              "idempotencyKey" to it.idempotencyKey,
+              "deviceId" to it.deviceId,
+              "userAgent" to it.userAgent,
+              "ipAddress" to it.ipAddress
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.claimChallenge" -> {
+        val challengeId = call.argument<String>("challengeId")!!
+
+        coroutineScope.launch {
+          val response = device.claimChallenge(challengeId)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "challengeId" to it.challengeId,
+              "userId" to it.userId
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.updateChallenge" -> {
+        val challengeId = call.argument<String>("challengeId")!!
+        val approved = call.argument<Boolean>("approved")!!
+        val verificationCode = call.argument<String>("verificationCode")
+
+        coroutineScope.launch {
+          val response = device.updateChallenge(challengeId, approved, verificationCode)
+
+          handleResponse(response, result)?.let {
+            result.success(it)
+          }
+        }
+      }
+
+      "device.verify" -> {
+        coroutineScope.launch {
+          val response = device.verify()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "userId" to it.userId,
+              "userAuthenticatorId" to it.userAuthenticatorId,
+              "username" to it.username,
+              "displayName" to it.displayName
             )
 
             result.success(data)
