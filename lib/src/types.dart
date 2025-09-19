@@ -259,47 +259,44 @@ class DeviceChallenge {
 }
 
 class ClaimChallengeResponse {
-  final String challengeId;
-  final String userId;
+  final bool success;
+  final String? userAgent;
+  final String? ipAddress;
 
   ClaimChallengeResponse({
-    required this.challengeId,
-    required this.userId,
+    required this.success,
+    required this.userAgent,
+    required this.ipAddress,
   });
 
   factory ClaimChallengeResponse.fromMap(Map<String, dynamic> map) {
     return ClaimChallengeResponse(
-      challengeId: map['challengeId'],
-      userId: map['userId'],
+      success: map['success'],
+      userAgent: map['userAgent'],
+      ipAddress: map['ipAddress'],
     );
   }
 }
 
 class VerifyDeviceResponse {
-  final bool isVerified;
-  final String? token;
-  final String? userId;
-  final String? userAuthenticatorId;
+  final String token;
+  final String userId;
+  final String userAuthenticatorId;
   final String? username;
-  final String? displayName;
 
   VerifyDeviceResponse({
-    required this.isVerified,
     required this.token,
     required this.userId,
     required this.userAuthenticatorId,
     required this.username,
-    required this.displayName,
   });
 
   factory VerifyDeviceResponse.fromMap(Map<String, dynamic> map) {
     return VerifyDeviceResponse(
-      isVerified: map['isVerified'],
       token: map['token'],
       userId: map['userId'],
       userAuthenticatorId: map['userAuthenticatorId'],
       username: map['username'],
-      displayName: map['displayName'],
     );
   }
 }

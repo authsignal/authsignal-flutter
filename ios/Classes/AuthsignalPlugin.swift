@@ -452,7 +452,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
         if response.error != nil {
           let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
           result(error)
-        } else if let challenge = response.data {
+        } else if let optionalChallenge = response.data, let challenge = optionalChallenge {
           let data: [String: String?] = [
             "challengeId": challenge.challengeId,
             "userId": challenge.userId,
@@ -480,9 +480,10 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
           result(error)
         } else if let data = response.data {
-          let claimResponse: [String: String?] = [
-            "challengeId": data.challengeId,
-            "userId": data.userId,
+          let claimResponse: [String: Any?] = [
+            "success": data.success,
+            "userAgent": data.userAgent,
+            "ipAddress": data.ipAddress,
           ]
 
           result(claimResponse)
@@ -521,12 +522,10 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           result(error)
         } else if let data = response.data {
           let verifyResponse: [String: Any?] = [
-            "isVerified": data.isVerified,
             "token": data.token,
             "userId": data.userId,
             "userAuthenticatorId": data.userAuthenticatorId,
             "username": data.username,
-            "displayName": data.displayName,
           ]
 
           result(verifyResponse)

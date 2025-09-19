@@ -424,9 +424,10 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
           val response = device.claimChallenge(challengeId)
 
           handleResponse(response, result)?.let {
-            val data = mapOf(
-              "challengeId" to it.challengeId,
-              "userId" to it.userId
+            val data = mapOf<String, Any?>(
+              "success" to it.success,
+              "userAgent" to it.userAgent,
+              "ipAddress" to it.ipAddress
             )
 
             result.success(data)
@@ -453,13 +454,11 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
           val response = device.verify()
 
           handleResponse(response, result)?.let {
-            val data = mapOf(
-              "isVerified" to it.isVerified,
+            val data = mapOf<String, Any?>(
               "token" to it.token,
               "userId" to it.userId,
               "userAuthenticatorId" to it.userAuthenticatorId,
-              "username" to it.username,
-              "displayName" to it.displayName
+              "username" to it.username
             )
 
             result.success(data)

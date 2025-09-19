@@ -65,8 +65,9 @@ void main() {
           case "device.claimChallenge":
             {
               return <String, dynamic>{
-                'challengeId': 'test_challenge_id',
-                'userId': 'test_user_id'
+                'success': true,
+                'userAgent': 'test_agent',
+                'ipAddress': '127.0.0.1'
               };
             }
 
@@ -78,12 +79,10 @@ void main() {
           case "device.verify":
             {
               return <String, dynamic>{
-                'isVerified': true,
                 'token': 'verify_token',
                 'userId': 'test_user_id',
                 'userAuthenticatorId': 'test_auth_id',
-                'username': 'test_username',
-                'displayName': 'Test User'
+                'username': 'test_username'
               };
             }
 
@@ -145,8 +144,9 @@ void main() {
   test('device.claimChallenge', () async {
     final result = await authsignal.device.claimChallenge('test_challenge_id');
 
-    expect(result.data!.challengeId, 'test_challenge_id');
-    expect(result.data!.userId, 'test_user_id');
+    expect(result.data!.success, true);
+    expect(result.data!.userAgent, 'test_agent');
+    expect(result.data!.ipAddress, '127.0.0.1');
   });
 
   test('device.updateChallenge', () async {
@@ -161,11 +161,9 @@ void main() {
   test('device.verify', () async {
     final result = await authsignal.device.verify();
 
-    expect(result.data!.isVerified, true);
     expect(result.data!.token, 'verify_token');
     expect(result.data!.userId, 'test_user_id');
     expect(result.data!.userAuthenticatorId, 'test_auth_id');
     expect(result.data!.username, 'test_username');
-    expect(result.data!.displayName, 'Test User');
   });
 }
