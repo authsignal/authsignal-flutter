@@ -3,12 +3,14 @@ package com.authsignal.authsignal_flutter
 import android.app.Activity
 import android.content.Context
 import com.authsignal.TokenCache
+import com.authsignal.device.AuthsignalDevice
 import com.authsignal.email.AuthsignalEmail
 import com.authsignal.models.AuthsignalResponse
 import com.authsignal.passkey.AuthsignalPasskey
 import com.authsignal.push.AuthsignalPush
 import com.authsignal.sms.AuthsignalSMS
 import com.authsignal.totp.AuthsignalTOTP
+import com.authsignal.whatsapp.AuthsignalWhatsApp
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -28,6 +30,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
   private lateinit var email: AuthsignalEmail
   private lateinit var sms: AuthsignalSMS
   private lateinit var totp: AuthsignalTOTP
+  private lateinit var whatsapp: AuthsignalWhatsApp
+  private lateinit var device: AuthsignalDevice
 
   private var activity: Activity? = null
   private var context: Context? = null
@@ -54,6 +58,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         email = AuthsignalEmail(tenantID, baseURL)
         sms = AuthsignalSMS(tenantID, baseURL)
         totp = AuthsignalTOTP(tenantID, baseURL)
+        whatsapp = AuthsignalWhatsApp(tenantID, baseURL)
+        device = AuthsignalDevice(tenantID, baseURL)
 
         result.success(null)
       }
@@ -302,6 +308,157 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "isVerified" to it.isVerified,
               "token" to it.token,
               "failureReason" to it.failureReason,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "whatsapp.challenge" -> {
+        coroutineScope.launch {
+          val response = whatsapp.challenge()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "challengeId" to it.challengeId,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "whatsapp.verify" -> {
+        val code = call.argument<String>("code")!!
+
+        coroutineScope.launch {
+          val response = whatsapp.verify(code)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "failureReason" to it.failureReason,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.getCredential" -> {
+        coroutineScope.launch {
+          val response = device.getCredential()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.addCredential" -> {
+        val token = call.argument<String>("token")
+        val deviceName = call.argument<String>("deviceName")
+        val userAuthenticationRequired = call.argument<Boolean>("userAuthenticationRequired") ?: false
+        val timeout = call.argument<Int>("timeout") ?: 0
+        val authorizationType = call.argument<Int>("authorizationType") ?: 0
+
+        coroutineScope.launch {
+          val response = device.addCredential(token, deviceName, userAuthenticationRequired, timeout, authorizationType)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.removeCredential" -> {
+        coroutineScope.launch {
+          val response = device.removeCredential()
+
+          handleResponse(response, result)?.let {
+            result.success(it)
+          }
+        }
+      }
+
+      "device.getChallenge" -> {
+        coroutineScope.launch {
+          val response = device.getChallenge()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "challengeId" to it.challengeId,
+              "userId" to it.userId,
+              "actionCode" to it.actionCode,
+              "idempotencyKey" to it.idempotencyKey,
+              "deviceId" to it.deviceId,
+              "userAgent" to it.userAgent,
+              "ipAddress" to it.ipAddress
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.claimChallenge" -> {
+        val challengeId = call.argument<String>("challengeId")!!
+
+        coroutineScope.launch {
+          val response = device.claimChallenge(challengeId)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf<String, Any?>(
+              "success" to it.success,
+              "userAgent" to it.userAgent,
+              "ipAddress" to it.ipAddress
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "device.updateChallenge" -> {
+        val challengeId = call.argument<String>("challengeId")!!
+        val approved = call.argument<Boolean>("approved")!!
+        val verificationCode = call.argument<String>("verificationCode")
+
+        coroutineScope.launch {
+          val response = device.updateChallenge(challengeId, approved, verificationCode)
+
+          handleResponse(response, result)?.let {
+            result.success(it)
+          }
+        }
+      }
+
+      "device.verify" -> {
+        coroutineScope.launch {
+          val response = device.verify()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf<String, Any?>(
+              "token" to it.token,
+              "userId" to it.userId,
+              "userAuthenticatorId" to it.userAuthenticatorId,
+              "username" to it.username
             )
 
             result.success(data)

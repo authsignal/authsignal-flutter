@@ -8,6 +8,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var email: AuthsignalEmail?
   var sms: AuthsignalSMS?
   var totp: AuthsignalTOTP?
+  var whatsapp: AuthsignalWhatsApp?
+  var device: AuthsignalDevice?
   
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "authsignal", binaryMessenger: registrar.messenger())
@@ -29,6 +31,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       self.email = AuthsignalEmail(tenantID: tenantID, baseURL: baseURL)
       self.sms = AuthsignalSMS(tenantID: tenantID, baseURL: baseURL)
       self.totp = AuthsignalTOTP(tenantID: tenantID, baseURL: baseURL)
+      self.whatsapp = AuthsignalWhatsApp(tenantID: tenantID, baseURL: baseURL)
+      self.device = AuthsignalDevice(tenantID: tenantID, baseURL: baseURL)
       
       result(nil)
 
@@ -339,6 +343,194 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           ]
           
           result(verifyResponse)
+        }
+      }
+      
+    case "whatsapp.challenge":
+      Task.init {
+        let response = await self.whatsapp!.challenge()
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
+          result(error)
+        } else {
+          let challengeResponse: [String: Any?] = [
+            "challengeId": response.data!.challengeId,
+          ]
+          
+          result(challengeResponse)
+        }
+      }
+      
+    case "whatsapp.verify":
+      let arguments = call.arguments as! [String: Any]
+      let code = arguments["code"] as! String
+      
+      Task.init {
+        let response = await self.whatsapp!.verify(code: code)
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
+          result(error)
+        } else {
+          let verifyResponse: [String: Any?] = [
+            "isVerified": response.data!.isVerified,
+            "token": response.data!.token,
+            "failureReason": response.data!.failureReason,
+          ]
+          
+          result(verifyResponse)
+        }
+      }
+
+    case "device.getCredential":
+      Task.init {
+        let response = await self.device!.getCredential()
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else if let data = response.data {
+          let credential: [String: String?] = [
+            "credentialId": data.credentialId,
+            "createdAt": data.createdAt,
+            "userId": data.userId,
+            "lastAuthenticatedAt": data.lastAuthenticatedAt,
+          ]
+
+          result(credential)
+        } else {
+          result(nil)
+        }
+      }
+
+    case "device.addCredential":
+      let arguments = call.arguments as! [String: Any]
+      let token = arguments["token"] as? String
+      let deviceName = arguments["deviceName"] as? String
+      let userAuthenticationRequired = arguments["userAuthenticationRequired"] as? Bool ?? false
+
+      Task.init {
+        let response = await self.device!.addCredential(
+          token: token,
+          userPresenceRequired: userAuthenticationRequired
+        )
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else if let data = response.data {
+          let credential: [String: String?] = [
+            "credentialId": data.credentialId,
+            "createdAt": data.createdAt,
+            "userId": data.userId,
+            "lastAuthenticatedAt": data.lastAuthenticatedAt,
+          ]
+
+          result(credential)
+        } else {
+          result(nil)
+        }
+      }
+
+    case "device.removeCredential":
+      Task.init {
+        let response = await self.device!.removeCredential()
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else {
+          result(response.data)
+        }
+      }
+
+    case "device.getChallenge":
+      Task.init {
+        let response = await self.device!.getChallenge()
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else if let optionalChallenge = response.data, let challenge = optionalChallenge {
+          let data: [String: String?] = [
+            "challengeId": challenge.challengeId,
+            "userId": challenge.userId,
+            "actionCode": challenge.actionCode,
+            "idempotencyKey": challenge.idempotencyKey,
+            "deviceId": challenge.deviceId,
+            "userAgent": challenge.userAgent,
+            "ipAddress": challenge.ipAddress,
+          ]
+
+          result(data)
+        } else {
+          result(nil)
+        }
+      }
+
+    case "device.claimChallenge":
+      let arguments = call.arguments as! [String: Any]
+      let challengeId = arguments["challengeId"] as! String
+      
+      Task.init {
+        let response = await self.device!.claimChallenge(challengeId: challengeId)
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else if let data = response.data {
+          let claimResponse: [String: Any?] = [
+            "success": data.success,
+            "userAgent": data.userAgent,
+            "ipAddress": data.ipAddress,
+          ]
+
+          result(claimResponse)
+        } else {
+          result(nil)
+        }
+      }
+
+    case "device.updateChallenge":
+      let arguments = call.arguments as! [String: Any]
+      let challengeId = arguments["challengeId"] as! String
+      let approved = arguments["approved"] as! Bool
+      let verificationCode = arguments["verificationCode"] as? String
+      
+      Task.init {
+        let response = await self.device!.updateChallenge(
+          challengeId: challengeId,
+          approved: approved,
+          verificationCode: verificationCode
+        )
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else {
+          result(response.data)
+        }
+      }
+
+    case "device.verify":
+      Task.init {
+        let response = await self.device!.verify()
+        
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else if let data = response.data {
+          let verifyResponse: [String: Any?] = [
+            "token": data.token,
+            "userId": data.userId,
+            "userAuthenticatorId": data.userAuthenticatorId,
+            "username": data.username,
+          ]
+
+          result(verifyResponse)
+        } else {
+          result(nil)
         }
       }
 
