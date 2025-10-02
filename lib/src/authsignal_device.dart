@@ -20,7 +20,8 @@ class AuthsignalDevice {
         return AuthsignalResponse(data: null);
       }
 
-      final credential = DeviceCredential.fromMap(Map<String, dynamic>.from(result));
+      final credential =
+          DeviceCredential.fromMap(Map<String, dynamic>.from(result));
       return AuthsignalResponse(data: credential);
     } on PlatformException catch (e) {
       return AuthsignalResponse.fromError(e);
@@ -45,8 +46,10 @@ class AuthsignalDevice {
         'authorizationType': authorizationType,
       };
 
-      final result = await _channel.invokeMethod('device.addCredential', arguments);
-      final credential = DeviceCredential.fromMap(Map<String, dynamic>.from(result));
+      final result =
+          await _channel.invokeMethod('device.addCredential', arguments);
+      final credential =
+          DeviceCredential.fromMap(Map<String, dynamic>.from(result));
       return AuthsignalResponse(data: credential);
     } on PlatformException catch (e) {
       return AuthsignalResponse.fromError(e);
@@ -74,7 +77,8 @@ class AuthsignalDevice {
         return AuthsignalResponse(data: null);
       }
 
-      final challenge = DeviceChallenge.fromMap(Map<String, dynamic>.from(result));
+      final challenge =
+          DeviceChallenge.fromMap(Map<String, dynamic>.from(result));
       return AuthsignalResponse(data: challenge);
     } on PlatformException catch (e) {
       return AuthsignalResponse.fromError(e);
@@ -91,8 +95,10 @@ class AuthsignalDevice {
         'challengeId': challengeId,
       };
 
-      final result = await _channel.invokeMethod('device.claimChallenge', arguments);
-      final response = ClaimChallengeResponse.fromMap(Map<String, dynamic>.from(result));
+      final result =
+          await _channel.invokeMethod('device.claimChallenge', arguments);
+      final response =
+          ClaimChallengeResponse.fromMap(Map<String, dynamic>.from(result));
       return AuthsignalResponse(data: response);
     } on PlatformException catch (e) {
       return AuthsignalResponse.fromError(e);
@@ -113,7 +119,8 @@ class AuthsignalDevice {
         'verificationCode': verificationCode,
       };
 
-      final result = await _channel.invokeMethod('device.updateChallenge', arguments);
+      final result =
+          await _channel.invokeMethod('device.updateChallenge', arguments);
       return AuthsignalResponse(data: result as bool);
     } on PlatformException catch (e) {
       return AuthsignalResponse.fromError(e);
@@ -125,7 +132,8 @@ class AuthsignalDevice {
       await initCheck();
 
       final result = await _channel.invokeMethod('device.verify');
-      final response = VerifyDeviceResponse.fromMap(Map<String, dynamic>.from(result));
+      final response =
+          VerifyDeviceResponse.fromMap(Map<String, dynamic>.from(result));
       return AuthsignalResponse(data: response);
     } on PlatformException catch (e) {
       return AuthsignalResponse.fromError(e);

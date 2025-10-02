@@ -10,7 +10,8 @@ void main() {
   Authsignal authsignal = Authsignal(tenantID: 'mock_tenant_id');
 
   setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
@@ -96,11 +97,13 @@ void main() {
   });
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
   });
 
   test('passkey.signUp', () async {
-    final result = await authsignal.passkey.signUp(token: 'initial_token', username: 'bob');
+    final result = await authsignal.passkey
+        .signUp(token: 'initial_token', username: 'bob');
 
     expect(result.data!.token, 'result_token');
   });

@@ -15,7 +15,8 @@ class AuthsignalPush {
     await initCheck();
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getCredential');
+      final data = await methodChannel
+          .invokeMapMethod<String, dynamic>('push.getCredential');
 
       if (data != null) {
         return AuthsignalResponse(data: PushCredential.fromMap(data));
@@ -33,7 +34,8 @@ class AuthsignalPush {
     var arguments = <String, dynamic>{'token': token};
 
     try {
-      final data = await methodChannel.invokeMethod<bool>('push.addCredential', arguments);
+      final data = await methodChannel.invokeMethod<bool>(
+          'push.addCredential', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: data);
@@ -49,7 +51,8 @@ class AuthsignalPush {
     await initCheck();
 
     try {
-      final data = await methodChannel.invokeMethod<bool>('push.removeCredential');
+      final data =
+          await methodChannel.invokeMethod<bool>('push.removeCredential');
 
       if (data != null) {
         return AuthsignalResponse(data: data);
@@ -65,7 +68,8 @@ class AuthsignalPush {
     await initCheck();
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('push.getChallenge');
+      final data = await methodChannel
+          .invokeMapMethod<String, dynamic>('push.getChallenge');
 
       if (data != null) {
         return AuthsignalResponse(data: PushChallenge.fromMap(data));
@@ -78,15 +82,21 @@ class AuthsignalPush {
   }
 
   Future<AuthsignalResponse<bool>> updateChallenge(
-      {required String challengeId, required bool approved, String? verificationCode}) async {
+      {required String challengeId,
+      required bool approved,
+      String? verificationCode}) async {
     await initCheck();
 
-    var arguments = <String, dynamic>{'challengeId': challengeId, 'approved': approved};
+    var arguments = <String, dynamic>{
+      'challengeId': challengeId,
+      'approved': approved
+    };
 
     arguments['verificationCode'] = verificationCode;
 
     try {
-      final data = await methodChannel.invokeMethod<bool>('push.updateChallenge', arguments);
+      final data = await methodChannel.invokeMethod<bool>(
+          'push.updateChallenge', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: data);
