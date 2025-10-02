@@ -2,16 +2,16 @@
 
 Example app showing how to integrate Authsignal Flutter SDK with Device Credentials and WhatsApp OTP.
 
-## Quick Start
+## Quick start
 
 ### 1. Prerequisites
 
 - Flutter SDK (>=3.3.0)
-- iOS Simulator or Android Emulator
+- iOS simulator or Android emulator
 - Node.js (for the backend test server)
-- An Authsignal account with Tenant ID and API Secret
+- An Authsignal account with tenant ID and API secret
 
-### 2. Configure Your Credentials
+### 2. Configure your credentials
 
 Create a `.env` file in the example directory (or modify `lib/config.dart`):
 
@@ -23,9 +23,9 @@ class AuthsignalConfig {
 }
 ```
 
-### 3. Set Up Backend Server
+### 3. Set up backend server
 
-The example requires a backend server to generate tokens (as tokens should never be generated client-side in production).
+The example requires a mock server to generate tokens. Only use an API secret key from a non-production tenant when running this server.
 
 ```bash
 cd backend
@@ -45,7 +45,7 @@ Start the server:
 npm start
 ```
 
-### 4. Run the Example App
+### 4. Run the example app
 
 ```bash
 cd example
@@ -53,9 +53,9 @@ flutter pub get
 flutter run
 ```
 
-## Learn More
+## Learn more
 
-- [Authsignal Documentation](https://docs.authsignal.com)
-- [Flutter SDK Reference](https://docs.authsignal.com/sdks/client/flutter)
-- [API Reference](https://docs.authsignal.com/api)
+- [Authsignal documentation](https://docs.authsignal.com)
+- [Flutter SDK reference](https://docs.authsignal.com/sdks/client/flutter)
+- [API reference](https://docs.authsignal.com/api)
 

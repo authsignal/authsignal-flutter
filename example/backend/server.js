@@ -39,7 +39,6 @@ app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
-    tenant: AUTHSIGNAL_TENANT_ID,
     version: '1.0.0',
   });
 });
@@ -105,6 +104,7 @@ app.post('/api/challenge-token', async (req, res) => {
     if (trackResponse.state === 'CHALLENGE_REQUIRED') {
       try {
         const userResponse = await authsignal.getUser({ userId });
+
         const deviceAuth = userResponse.userAuthenticators?.find(
           (auth) => auth.userAuthenticatorType === 'DEVICE'
         );
@@ -235,8 +235,6 @@ app.listen(PORT, () => {
   console.log('🚀 Authsignal Example Backend Server');
   console.log('═══════════════════════════════════════');
   console.log(`📡 Server running on http://localhost:${PORT}`);
-  console.log(`📱 Tenant ID: ${AUTHSIGNAL_TENANT_ID}`);
-  console.log(`🔗 Base URL: ${AUTHSIGNAL_BASE_URL}`);
   console.log('');
   console.log('📋 Quick Test:');
   console.log(`   curl http://localhost:${PORT}/health`);
