@@ -15,7 +15,8 @@ class AuthsignalWhatsApp {
     await initCheck();
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('whatsapp.challenge');
+      final data = await methodChannel
+          .invokeMapMethod<String, dynamic>('whatsapp.challenge');
 
       if (data != null) {
         return AuthsignalResponse(data: ChallengeResponse.fromMap(data));
@@ -33,7 +34,8 @@ class AuthsignalWhatsApp {
     var arguments = <String, dynamic>{'code': code};
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('whatsapp.verify', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'whatsapp.verify', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: VerifyResponse.fromMap(data));

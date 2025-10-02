@@ -17,7 +17,8 @@ class AuthsignalEmail {
     var arguments = <String, dynamic>{'email': email};
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('email.enroll', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'email.enroll', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: EnrollResponse.fromMap(data));
@@ -33,7 +34,8 @@ class AuthsignalEmail {
     await initCheck();
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('email.challenge');
+      final data = await methodChannel
+          .invokeMapMethod<String, dynamic>('email.challenge');
 
       if (data != null) {
         return AuthsignalResponse(data: ChallengeResponse.fromMap(data));
@@ -51,7 +53,8 @@ class AuthsignalEmail {
     var arguments = <String, dynamic>{'code': code};
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('email.verify', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'email.verify', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: VerifyResponse.fromMap(data));

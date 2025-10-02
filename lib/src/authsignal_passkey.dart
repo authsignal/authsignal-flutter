@@ -15,7 +15,8 @@ class AuthsignalPasskey {
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
 
-  Future<AuthsignalResponse<SignUpResponse>> signUp({String? token, String? username, String? displayName}) async {
+  Future<AuthsignalResponse<SignUpResponse>> signUp(
+      {String? token, String? username, String? displayName}) async {
     await initCheck();
 
     var arguments = <String, dynamic>{'token': token};
@@ -23,7 +24,8 @@ class AuthsignalPasskey {
     arguments['displayName'] = displayName;
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('passkey.signUp', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'passkey.signUp', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: SignUpResponse.fromMap(data));
@@ -36,14 +38,18 @@ class AuthsignalPasskey {
   }
 
   Future<AuthsignalResponse<SignInResponse>> signIn(
-      {String? action, String? token, bool autofill = false, preferImmediatelyAvailableCredentials = true}) async {
+      {String? action,
+      String? token,
+      bool autofill = false,
+      preferImmediatelyAvailableCredentials = true}) async {
     await initCheck();
 
     var arguments = <String, dynamic>{};
     arguments['action'] = action;
     arguments['token'] = token;
     arguments['autofill'] = autofill;
-    arguments['preferImmediatelyAvailableCredentials'] = preferImmediatelyAvailableCredentials;
+    arguments['preferImmediatelyAvailableCredentials'] =
+        preferImmediatelyAvailableCredentials;
 
     try {
       if (autofill) {
@@ -54,7 +60,8 @@ class AuthsignalPasskey {
         }
       }
 
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('passkey.signIn', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'passkey.signIn', arguments);
 
       _autofillRequestPending = false;
 
@@ -82,7 +89,8 @@ class AuthsignalPasskey {
     await initCheck();
 
     try {
-      final data = await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
+      final data =
+          await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
 
       return AuthsignalResponse(data: data);
     } on PlatformException catch (ex) {

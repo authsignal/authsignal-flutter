@@ -9,7 +9,15 @@ import 'src/authsignal_totp.dart';
 import 'src/authsignal_whatsapp.dart';
 import 'src/authsignal_device.dart';
 
-export 'src/types.dart' show AuthsignalResponse, TokenPayload, ErrorCode, DeviceCredential, DeviceChallenge, ClaimChallengeResponse, VerifyDeviceResponse;
+export 'src/types.dart'
+    show
+        AuthsignalResponse,
+        TokenPayload,
+        ErrorCode,
+        DeviceCredential,
+        DeviceChallenge,
+        ClaimChallengeResponse,
+        VerifyDeviceResponse;
 
 class Authsignal {
   String tenantID;
@@ -25,7 +33,9 @@ class Authsignal {
 
   bool _initialized = false;
 
-  Authsignal({required this.tenantID, this.baseURL = "https://api.authsignal.com/v1"}) {
+  Authsignal(
+      {required this.tenantID,
+      this.baseURL = "https://api.authsignal.com/v1"}) {
     passkey = AuthsignalPasskey(initCheck: initCheck);
     push = AuthsignalPush(initCheck: initCheck);
     email = AuthsignalEmail(initCheck: initCheck);
@@ -37,7 +47,10 @@ class Authsignal {
 
   Future<void> initCheck() async {
     if (!_initialized) {
-      var arguments = <String, String>{'tenantID': tenantID, 'baseURL': baseURL};
+      var arguments = <String, String>{
+        'tenantID': tenantID,
+        'baseURL': baseURL
+      };
 
       await methodChannel.invokeMethod<String>('initialize', arguments);
 

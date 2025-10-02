@@ -16,7 +16,8 @@ class AuthsignalSms {
 
     var arguments = <String, dynamic>{'phoneNumber': phoneNumber};
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('sms.enroll', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'sms.enroll', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: EnrollResponse.fromMap(data));
@@ -32,7 +33,8 @@ class AuthsignalSms {
     await initCheck();
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('sms.challenge');
+      final data =
+          await methodChannel.invokeMapMethod<String, dynamic>('sms.challenge');
 
       if (data != null) {
         return AuthsignalResponse(data: ChallengeResponse.fromMap(data));
@@ -50,7 +52,8 @@ class AuthsignalSms {
     var arguments = <String, dynamic>{'code': code};
 
     try {
-      final data = await methodChannel.invokeMapMethod<String, dynamic>('sms.verify', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'sms.verify', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: VerifyResponse.fromMap(data));
