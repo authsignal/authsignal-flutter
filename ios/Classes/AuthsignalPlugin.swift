@@ -8,7 +8,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var email: AuthsignalEmail?
   var sms: AuthsignalSMS?
   var totp: AuthsignalTOTP?
-  var whatsapp: AuthsignalWhatsApp?
   var device: AuthsignalDevice?
   
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -31,7 +30,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       self.email = AuthsignalEmail(tenantID: tenantID, baseURL: baseURL)
       self.sms = AuthsignalSMS(tenantID: tenantID, baseURL: baseURL)
       self.totp = AuthsignalTOTP(tenantID: tenantID, baseURL: baseURL)
-      self.whatsapp = AuthsignalWhatsApp(tenantID: tenantID, baseURL: baseURL)
       self.device = AuthsignalDevice(tenantID: tenantID, baseURL: baseURL)
       
       result(nil)
@@ -331,43 +329,6 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       
       Task.init {
         let response = await self.totp!.verify(code: code)
-        
-        if response.error != nil {
-          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
-          result(error)
-        } else {
-          let verifyResponse: [String: Any?] = [
-            "isVerified": response.data!.isVerified,
-            "token": response.data!.token,
-            "failureReason": response.data!.failureReason,
-          ]
-          
-          result(verifyResponse)
-        }
-      }
-      
-    case "whatsapp.challenge":
-      Task.init {
-        let response = await self.whatsapp!.challenge()
-        
-        if response.error != nil {
-          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");
-          result(error)
-        } else {
-          let challengeResponse: [String: Any?] = [
-            "challengeId": response.data!.challengeId,
-          ]
-          
-          result(challengeResponse)
-        }
-      }
-      
-    case "whatsapp.verify":
-      let arguments = call.arguments as! [String: Any]
-      let code = arguments["code"] as! String
-      
-      Task.init {
-        let response = await self.whatsapp!.verify(code: code)
         
         if response.error != nil {
           let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "");

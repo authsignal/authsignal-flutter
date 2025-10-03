@@ -49,6 +49,6 @@ android {
     }
 
     dependencies {
-        implementation 'com.authsignal:authsignal-android:2.6.0'
+        implementation 'com.authsignal:authsignal-android:2.3.1'
     }
 }

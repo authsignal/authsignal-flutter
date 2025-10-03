@@ -135,8 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             _buildDeviceCredentialsCard(),
             const SizedBox(height: 16),
-            _buildWhatsAppSection(),
-            const SizedBox(height: 16),
             _buildOtherFeaturesCard(),
             const SizedBox(height: 16),
             OutputConsole(output: _outputLog.join('\n')),
@@ -175,57 +173,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildWhatsAppSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              '📱 WhatsApp OTP',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Send and verify one-time passwords via WhatsApp',
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _otpController,
-              decoration: const InputDecoration(
-                labelText: 'OTP Code',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.password),
-              ),
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _isInitialized ? _sendWhatsAppOTP : null,
-                  icon: const Icon(Icons.send, size: 18),
-                  label: const Text('Send OTP'),
-                ),
-                ElevatedButton.icon(
-                  onPressed: _isInitialized && _otpController.text.isNotEmpty
-                      ? _verifyWhatsAppOTP
-                      : null,
-                  icon: const Icon(Icons.check_circle, size: 18),
-                  label: const Text('Verify OTP'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildOtherFeaturesCard() {
     return FeatureCard(
@@ -360,59 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // WhatsApp Methods
-
-  Future<void> _sendWhatsAppOTP() async {
-    try {
-      _addOutput('📝 Getting challenge token from backend...');
-      final tokenResponse = await backendService.getChallengeToken(
-        userId: _userIdController.text,
-        phoneNumber: _phoneController.text,
-      );
-
-      if (tokenResponse == null) {
-        _addOutput('❌ Failed to get challenge token');
-        return;
-      }
-
-      await authsignal.setToken(tokenResponse.token);
-      _addOutput('📱 Sending WhatsApp OTP...');
-
-      final result = await authsignal.whatsapp.challenge();
-
-      if (result.data != null) {
-        _addOutput('✅ WhatsApp OTP sent!');
-        _addOutput('   Challenge ID: ${result.data!.challengeId}');
-        _addOutput('   Check WhatsApp on ${_phoneController.text}');
-      } else {
-        _addOutput('❌ Failed to send OTP: ${result.error}');
-      }
-    } catch (e) {
-      _addOutput('❌ Error: $e');
-    }
-  }
-
-  Future<void> _verifyWhatsAppOTP() async {
-    try {
-      _addOutput('🔍 Verifying WhatsApp OTP: ${_otpController.text}');
-      final result = await authsignal.whatsapp.verify(_otpController.text);
-
-      if (result.data != null) {
-        if (result.data!.isVerified) {
-          _addOutput('✅ WhatsApp OTP verified successfully!');
-          _addOutput('   Token: ${result.data!.token?.substring(0, 20)}...');
-          _addOutput('🎉 Authentication completed!');
-        } else {
-          _addOutput('❌ OTP verification failed');
-          _addOutput('   Reason: ${result.data!.failureReason ?? "Invalid code"}');
-        }
-      } else {
-        _addOutput('❌ Verification error: ${result.error}');
-      }
-    } catch (e) {
-      _addOutput('❌ Error: $e');
-    }
-  }
 
   @override
   void dispose() {

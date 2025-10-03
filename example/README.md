@@ -1,6 +1,6 @@
 # Authsignal Flutter SDK - Example App
 
-Example app showing how to integrate Authsignal Flutter SDK with Device Credentials and WhatsApp OTP.
+Example app showing how to integrate Authsignal Flutter SDK with Device Credentials.
 
 ## Quick start
 
