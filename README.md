@@ -1,4 +1,4 @@
-<img width="1070" alt="Authsignal" src="https://raw.githubusercontent.com/authsignal/authsignal-flutter/main/authsignal-flutter/.github/images/authsignal.png">
+<img width="1070" alt="Authsignal" src="https://raw.githubusercontent.com/authsignal/authsignal-flutter/main/.github/images/authsignal.png">
 
 # Authsignal Flutter SDK
 
