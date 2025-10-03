@@ -6,6 +6,10 @@ Documentation
 
 - Add device credentials SDK methods
 
+## 1.1.2
+
+- Uses authsignal-android:2.3.1
+
 ## 0.1.1
 
 - Make versioning consistent.
