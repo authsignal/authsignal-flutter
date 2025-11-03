@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildInAppAuthCard() {
     return FeatureCard(
-      title: '🔐 In-App Verification (Trusted Device)',
+      title: '🔐 In-App Verification',
       description: 'Secure device-based authentication using cryptographic keys stored on this device',
       actions: [
         ElevatedButton.icon(
