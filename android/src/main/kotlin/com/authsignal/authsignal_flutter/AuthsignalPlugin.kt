@@ -3,11 +3,12 @@ package com.authsignal.authsignal_flutter
 import android.app.Activity
 import android.content.Context
 import com.authsignal.TokenCache
-import com.authsignal.device.AuthsignalDevice
 import com.authsignal.email.AuthsignalEmail
+import com.authsignal.inapp.AuthsignalInApp
 import com.authsignal.models.AuthsignalResponse
 import com.authsignal.passkey.AuthsignalPasskey
 import com.authsignal.push.AuthsignalPush
+import com.authsignal.qr.AuthsignalQRCode
 import com.authsignal.sms.AuthsignalSMS
 import com.authsignal.totp.AuthsignalTOTP
 import com.authsignal.whatsapp.AuthsignalWhatsApp
@@ -31,7 +32,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
   private lateinit var sms: AuthsignalSMS
   private lateinit var totp: AuthsignalTOTP
   private lateinit var whatsapp: AuthsignalWhatsApp
-  private lateinit var device: AuthsignalDevice
+  private lateinit var qr: AuthsignalQRCode
+  private lateinit var inapp: AuthsignalInApp
 
   private var activity: Activity? = null
   private var context: Context? = null
@@ -59,7 +61,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         sms = AuthsignalSMS(tenantID, baseURL)
         totp = AuthsignalTOTP(tenantID, baseURL)
         whatsapp = AuthsignalWhatsApp(tenantID, baseURL)
-        device = AuthsignalDevice(tenantID, baseURL)
+        qr = AuthsignalQRCode(tenantID, baseURL)
+        inapp = AuthsignalInApp(tenantID, baseURL)
 
         result.success(null)
       }
@@ -122,6 +125,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
             val data = mapOf(
               "credentialId" to it.credentialId,
               "createdAt" to it.createdAt,
+              "userId" to it.userId,
               "lastAuthenticatedAt" to it.lastAuthenticatedAt
             )
 
@@ -137,7 +141,14 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
           val response = push.addCredential(token)
 
           handleResponse(response, result)?.let {
-            result.success(it)
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
           }
         }
       }
@@ -347,9 +358,9 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "device.getCredential" -> {
+      "qr.getCredential" -> {
         coroutineScope.launch {
-          val response = device.getCredential()
+          val response = qr.getCredential()
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -364,15 +375,11 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "device.addCredential" -> {
+      "qr.addCredential" -> {
         val token = call.argument<String>("token")
-        val deviceName = call.argument<String>("deviceName")
-        val userAuthenticationRequired = call.argument<Boolean>("userAuthenticationRequired") ?: false
-        val timeout = call.argument<Int>("timeout") ?: 0
-        val authorizationType = call.argument<Int>("authorizationType") ?: 0
 
         coroutineScope.launch {
-          val response = device.addCredential(token, deviceName, userAuthenticationRequired, timeout, authorizationType)
+          val response = qr.addCredential(token)
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -387,9 +394,9 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "device.removeCredential" -> {
+      "qr.removeCredential" -> {
         coroutineScope.launch {
-          val response = device.removeCredential()
+          val response = qr.removeCredential()
 
           handleResponse(response, result)?.let {
             result.success(it)
@@ -397,31 +404,11 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "device.getChallenge" -> {
-        coroutineScope.launch {
-          val response = device.getChallenge()
-
-          handleResponse(response, result)?.let {
-            val data = mapOf(
-              "challengeId" to it.challengeId,
-              "userId" to it.userId,
-              "actionCode" to it.actionCode,
-              "idempotencyKey" to it.idempotencyKey,
-              "deviceId" to it.deviceId,
-              "userAgent" to it.userAgent,
-              "ipAddress" to it.ipAddress
-            )
-
-            result.success(data)
-          }
-        }
-      }
-
-      "device.claimChallenge" -> {
+      "qr.claimChallenge" -> {
         val challengeId = call.argument<String>("challengeId")!!
 
         coroutineScope.launch {
-          val response = device.claimChallenge(challengeId)
+          val response = qr.claimChallenge(challengeId)
 
           handleResponse(response, result)?.let {
             val data = mapOf<String, Any?>(
@@ -435,13 +422,13 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "device.updateChallenge" -> {
+      "qr.updateChallenge" -> {
         val challengeId = call.argument<String>("challengeId")!!
         val approved = call.argument<Boolean>("approved")!!
         val verificationCode = call.argument<String>("verificationCode")
 
         coroutineScope.launch {
-          val response = device.updateChallenge(challengeId, approved, verificationCode)
+          val response = qr.updateChallenge(challengeId, approved, verificationCode)
 
           handleResponse(response, result)?.let {
             result.success(it)
@@ -449,9 +436,55 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
-      "device.verify" -> {
+      "inapp.getCredential" -> {
         coroutineScope.launch {
-          val response = device.verify()
+          val response = inapp.getCredential()
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "inapp.addCredential" -> {
+        val token = call.argument<String>("token")
+
+        coroutineScope.launch {
+          val response = inapp.addCredential(token)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "inapp.removeCredential" -> {
+        coroutineScope.launch {
+          val response = inapp.removeCredential()
+
+          handleResponse(response, result)?.let {
+            result.success(it)
+          }
+        }
+      }
+
+      "inapp.verify" -> {
+        coroutineScope.launch {
+          val response = inapp.verify()
 
           handleResponse(response, result)?.let {
             val data = mapOf<String, Any?>(

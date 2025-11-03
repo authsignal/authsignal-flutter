@@ -25,7 +25,49 @@ void main() {
               return <String, dynamic>{'token': 'result_token'};
             }
 
-          case "device.getCredential":
+          case "push.getCredential":
+            {
+              return <String, dynamic>{
+                'credentialId': 'test_push_credential_id',
+                'createdAt': '2023-01-01T00:00:00Z',
+                'userId': 'test_user_id',
+                'lastAuthenticatedAt': '2023-01-02T00:00:00Z'
+              };
+            }
+
+          case "push.addCredential":
+            {
+              return <String, dynamic>{
+                'credentialId': 'new_push_credential_id',
+                'createdAt': '2023-01-01T00:00:00Z',
+                'userId': 'test_user_id',
+                'lastAuthenticatedAt': null
+              };
+            }
+
+          case "push.removeCredential":
+            {
+              return true;
+            }
+
+          case "push.getChallenge":
+            {
+              return <String, dynamic>{
+                'challengeId': 'test_challenge_id',
+                'actionCode': 'test_action',
+                'idempotencyKey': 'test_key',
+                'userAgent': 'test_agent',
+                'deviceId': 'test_device',
+                'ipAddress': '127.0.0.1'
+              };
+            }
+
+          case "push.updateChallenge":
+            {
+              return true;
+            }
+
+          case "qr.getCredential":
             {
               return <String, dynamic>{
                 'credentialId': 'test_credential_id',
@@ -35,7 +77,7 @@ void main() {
               };
             }
 
-          case "device.addCredential":
+          case "qr.addCredential":
             {
               return <String, dynamic>{
                 'credentialId': 'new_credential_id',
@@ -45,25 +87,12 @@ void main() {
               };
             }
 
-          case "device.removeCredential":
+          case "qr.removeCredential":
             {
               return true;
             }
 
-          case "device.getChallenge":
-            {
-              return <String, dynamic>{
-                'challengeId': 'test_challenge_id',
-                'userId': 'test_user_id',
-                'actionCode': 'test_action',
-                'idempotencyKey': 'test_key',
-                'deviceId': 'test_device_id',
-                'userAgent': 'test_agent',
-                'ipAddress': '127.0.0.1'
-              };
-            }
-
-          case "device.claimChallenge":
+          case "qr.claimChallenge":
             {
               return <String, dynamic>{
                 'success': true,
@@ -72,12 +101,37 @@ void main() {
               };
             }
 
-          case "device.updateChallenge":
+          case "qr.updateChallenge":
             {
               return true;
             }
 
-          case "device.verify":
+          case "inapp.getCredential":
+            {
+              return <String, dynamic>{
+                'credentialId': 'test_inapp_credential_id',
+                'createdAt': '2023-01-01T00:00:00Z',
+                'userId': 'test_user_id',
+                'lastAuthenticatedAt': '2023-01-02T00:00:00Z'
+              };
+            }
+
+          case "inapp.addCredential":
+            {
+              return <String, dynamic>{
+                'credentialId': 'new_inapp_credential_id',
+                'createdAt': '2023-01-01T00:00:00Z',
+                'userId': 'test_user_id',
+                'lastAuthenticatedAt': null
+              };
+            }
+
+          case "inapp.removeCredential":
+            {
+              return true;
+            }
+
+          case "inapp.verify":
             {
               return <String, dynamic>{
                 'token': 'verify_token',
@@ -108,8 +162,52 @@ void main() {
     expect(result.data!.token, 'result_token');
   });
 
-  test('device.getCredential', () async {
-    final result = await authsignal.device.getCredential();
+  test('push.getCredential', () async {
+    final result = await authsignal.push.getCredential();
+
+    expect(result.data!.credentialId, 'test_push_credential_id');
+    expect(result.data!.userId, 'test_user_id');
+    expect(result.data!.createdAt, '2023-01-01T00:00:00Z');
+    expect(result.data!.lastAuthenticatedAt, '2023-01-02T00:00:00Z');
+  });
+
+  test('push.addCredential', () async {
+    final result = await authsignal.push.addCredential(token: 'test_token');
+
+    expect(result.data!.credentialId, 'new_push_credential_id');
+    expect(result.data!.userId, 'test_user_id');
+    expect(result.data!.createdAt, '2023-01-01T00:00:00Z');
+    expect(result.data!.lastAuthenticatedAt, null);
+  });
+
+  test('push.removeCredential', () async {
+    final result = await authsignal.push.removeCredential();
+
+    expect(result.data, true);
+  });
+
+  test('push.getChallenge', () async {
+    final result = await authsignal.push.getChallenge();
+
+    expect(result.data!.challengeId, 'test_challenge_id');
+    expect(result.data!.actionCode, 'test_action');
+    expect(result.data!.idempotencyKey, 'test_key');
+    expect(result.data!.userAgent, 'test_agent');
+    expect(result.data!.deviceId, 'test_device');
+    expect(result.data!.ipAddress, '127.0.0.1');
+  });
+
+  test('push.updateChallenge', () async {
+    final result = await authsignal.push.updateChallenge(
+      challengeId: 'test_challenge_id',
+      approved: true,
+    );
+
+    expect(result.data, true);
+  });
+
+  test('qr.getCredential', () async {
+    final result = await authsignal.qr.getCredential();
 
     expect(result.data!.credentialId, 'test_credential_id');
     expect(result.data!.userId, 'test_user_id');
@@ -117,8 +215,8 @@ void main() {
     expect(result.data!.lastAuthenticatedAt, '2023-01-02T00:00:00Z');
   });
 
-  test('device.addCredential', () async {
-    final result = await authsignal.device.addCredential(token: 'test_token');
+  test('qr.addCredential', () async {
+    final result = await authsignal.qr.addCredential(token: 'test_token');
 
     expect(result.data!.credentialId, 'new_credential_id');
     expect(result.data!.userId, 'test_user_id');
@@ -126,43 +224,55 @@ void main() {
     expect(result.data!.lastAuthenticatedAt, null);
   });
 
-  test('device.removeCredential', () async {
-    final result = await authsignal.device.removeCredential();
+  test('qr.removeCredential', () async {
+    final result = await authsignal.qr.removeCredential();
 
     expect(result.data, true);
   });
 
-  test('device.getChallenge', () async {
-    final result = await authsignal.device.getChallenge();
-
-    expect(result.data!.challengeId, 'test_challenge_id');
-    expect(result.data!.userId, 'test_user_id');
-    expect(result.data!.actionCode, 'test_action');
-    expect(result.data!.idempotencyKey, 'test_key');
-    expect(result.data!.deviceId, 'test_device_id');
-    expect(result.data!.userAgent, 'test_agent');
-    expect(result.data!.ipAddress, '127.0.0.1');
-  });
-
-  test('device.claimChallenge', () async {
-    final result = await authsignal.device.claimChallenge('test_challenge_id');
+  test('qr.claimChallenge', () async {
+    final result = await authsignal.qr.claimChallenge('test_challenge_id');
 
     expect(result.data!.success, true);
     expect(result.data!.userAgent, 'test_agent');
     expect(result.data!.ipAddress, '127.0.0.1');
   });
 
-  test('device.updateChallenge', () async {
-    final result = await authsignal.device.updateChallenge(
-      'test_challenge_id',
-      true,
+  test('qr.updateChallenge', () async {
+    final result = await authsignal.qr.updateChallenge(
+      challengeId: 'test_challenge_id',
+      approved: true,
     );
 
     expect(result.data, true);
   });
 
-  test('device.verify', () async {
-    final result = await authsignal.device.verify();
+  test('inapp.getCredential', () async {
+    final result = await authsignal.inapp.getCredential();
+
+    expect(result.data!.credentialId, 'test_inapp_credential_id');
+    expect(result.data!.userId, 'test_user_id');
+    expect(result.data!.createdAt, '2023-01-01T00:00:00Z');
+    expect(result.data!.lastAuthenticatedAt, '2023-01-02T00:00:00Z');
+  });
+
+  test('inapp.addCredential', () async {
+    final result = await authsignal.inapp.addCredential(token: 'test_token');
+
+    expect(result.data!.credentialId, 'new_inapp_credential_id');
+    expect(result.data!.userId, 'test_user_id');
+    expect(result.data!.createdAt, '2023-01-01T00:00:00Z');
+    expect(result.data!.lastAuthenticatedAt, null);
+  });
+
+  test('inapp.removeCredential', () async {
+    final result = await authsignal.inapp.removeCredential();
+
+    expect(result.data, true);
+  });
+
+  test('inapp.verify', () async {
+    final result = await authsignal.inapp.verify();
 
     expect(result.data!.token, 'verify_token');
     expect(result.data!.userId, 'test_user_id');

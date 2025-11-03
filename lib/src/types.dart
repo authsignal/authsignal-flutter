@@ -86,27 +86,30 @@ class SignInResponse {
   }
 }
 
-class PushCredential {
+class AppCredential {
   final String credentialId;
   String createdAt;
+  String userId;
   String? lastAuthenticatedAt;
 
-  PushCredential({
+  AppCredential({
     required this.credentialId,
     required this.createdAt,
+    required this.userId,
     required this.lastAuthenticatedAt,
   });
 
-  factory PushCredential.fromMap(Map<String, dynamic> map) {
-    return PushCredential(
+  factory AppCredential.fromMap(Map<String, dynamic> map) {
+    return AppCredential(
       credentialId: map['credentialId'],
       createdAt: map['createdAt'],
+      userId: map['userId'],
       lastAuthenticatedAt: map['lastAuthenticatedAt'],
     );
   }
 }
 
-class PushChallenge {
+class AppChallenge {
   final String challengeId;
   final String? actionCode;
   final String? idempotencyKey;
@@ -114,7 +117,7 @@ class PushChallenge {
   final String? deviceId;
   final String? ipAddress;
 
-  PushChallenge({
+  AppChallenge({
     required this.challengeId,
     required this.actionCode,
     required this.idempotencyKey,
@@ -123,8 +126,8 @@ class PushChallenge {
     required this.ipAddress,
   });
 
-  factory PushChallenge.fromMap(Map<String, dynamic> map) {
-    return PushChallenge(
+  factory AppChallenge.fromMap(Map<String, dynamic> map) {
+    return AppChallenge(
       challengeId: map['challengeId'],
       actionCode: map['actionCode'],
       idempotencyKey: map['idempotencyKey'],
@@ -203,61 +206,6 @@ class VerifyResponse {
   }
 }
 
-class DeviceCredential {
-  final String credentialId;
-  final String createdAt;
-  final String userId;
-  final String? lastAuthenticatedAt;
-
-  DeviceCredential({
-    required this.credentialId,
-    required this.createdAt,
-    required this.userId,
-    required this.lastAuthenticatedAt,
-  });
-
-  factory DeviceCredential.fromMap(Map<String, dynamic> map) {
-    return DeviceCredential(
-      credentialId: map['credentialId'],
-      createdAt: map['createdAt'],
-      userId: map['userId'],
-      lastAuthenticatedAt: map['lastAuthenticatedAt'],
-    );
-  }
-}
-
-class DeviceChallenge {
-  final String challengeId;
-  final String userId;
-  final String? actionCode;
-  final String? idempotencyKey;
-  final String? deviceId;
-  final String? userAgent;
-  final String? ipAddress;
-
-  DeviceChallenge({
-    required this.challengeId,
-    required this.userId,
-    required this.actionCode,
-    required this.idempotencyKey,
-    required this.deviceId,
-    required this.userAgent,
-    required this.ipAddress,
-  });
-
-  factory DeviceChallenge.fromMap(Map<String, dynamic> map) {
-    return DeviceChallenge(
-      challengeId: map['challengeId'],
-      userId: map['userId'],
-      actionCode: map['actionCode'],
-      idempotencyKey: map['idempotencyKey'],
-      deviceId: map['deviceId'],
-      userAgent: map['userAgent'],
-      ipAddress: map['ipAddress'],
-    );
-  }
-}
-
 class ClaimChallengeResponse {
   final bool success;
   final String? userAgent;
@@ -278,21 +226,21 @@ class ClaimChallengeResponse {
   }
 }
 
-class VerifyDeviceResponse {
+class InAppVerifyResponse {
   final String token;
   final String userId;
   final String userAuthenticatorId;
   final String? username;
 
-  VerifyDeviceResponse({
+  InAppVerifyResponse({
     required this.token,
     required this.userId,
     required this.userAuthenticatorId,
     required this.username,
   });
 
-  factory VerifyDeviceResponse.fromMap(Map<String, dynamic> map) {
-    return VerifyDeviceResponse(
+  factory InAppVerifyResponse.fromMap(Map<String, dynamic> map) {
+    return InAppVerifyResponse(
       token: map['token'],
       userId: map['userId'],
       userAuthenticatorId: map['userAuthenticatorId'],

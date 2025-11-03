@@ -7,17 +7,18 @@ import 'src/authsignal_email.dart';
 import 'src/authsignal_sms.dart';
 import 'src/authsignal_totp.dart';
 import 'src/authsignal_whatsapp.dart';
-import 'src/authsignal_device.dart';
+import 'src/authsignal_qr.dart';
+import 'src/authsignal_inapp.dart';
 
 export 'src/types.dart'
     show
         AuthsignalResponse,
         TokenPayload,
         ErrorCode,
-        DeviceCredential,
-        DeviceChallenge,
+        AppCredential,
+        AppChallenge,
         ClaimChallengeResponse,
-        VerifyDeviceResponse;
+        InAppVerifyResponse;
 
 class Authsignal {
   String tenantID;
@@ -29,7 +30,8 @@ class Authsignal {
   late AuthsignalSms sms;
   late AuthsignalTotp totp;
   late AuthsignalWhatsApp whatsapp;
-  late AuthsignalDevice device;
+  late AuthsignalQr qr;
+  late AuthsignalInApp inapp;
 
   bool _initialized = false;
 
@@ -42,7 +44,8 @@ class Authsignal {
     sms = AuthsignalSms(initCheck: initCheck);
     totp = AuthsignalTotp(initCheck: initCheck);
     whatsapp = AuthsignalWhatsApp(initCheck: initCheck);
-    device = AuthsignalDevice(initCheck: initCheck);
+    qr = AuthsignalQr(initCheck: initCheck);
+    inapp = AuthsignalInApp(initCheck: initCheck);
   }
 
   Future<void> initCheck() async {

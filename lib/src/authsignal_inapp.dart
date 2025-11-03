@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 
 import 'types.dart';
 
-class AuthsignalPush {
+class AuthsignalInApp {
   final AsyncCallback initCheck;
 
-  AuthsignalPush({required this.initCheck});
+  AuthsignalInApp({required this.initCheck});
 
   @visibleForTesting
   final methodChannel = const MethodChannel('authsignal');
@@ -16,7 +16,7 @@ class AuthsignalPush {
 
     try {
       final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('push.getCredential');
+          .invokeMapMethod<String, dynamic>('inapp.getCredential');
 
       if (data != null) {
         return AuthsignalResponse(data: AppCredential.fromMap(data));
@@ -35,7 +35,7 @@ class AuthsignalPush {
 
     try {
       final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('push.addCredential', arguments);
+          .invokeMapMethod<String, dynamic>('inapp.addCredential', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: AppCredential.fromMap(data));
@@ -52,7 +52,7 @@ class AuthsignalPush {
 
     try {
       final data =
-          await methodChannel.invokeMethod<bool>('push.removeCredential');
+          await methodChannel.invokeMethod<bool>('inapp.removeCredential');
 
       if (data != null) {
         return AuthsignalResponse(data: data);
@@ -64,42 +64,15 @@ class AuthsignalPush {
     }
   }
 
-  Future<AuthsignalResponse<AppChallenge?>> getChallenge() async {
+  Future<AuthsignalResponse<InAppVerifyResponse>> verify() async {
     await initCheck();
 
     try {
       final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('push.getChallenge');
+          .invokeMapMethod<String, dynamic>('inapp.verify');
 
       if (data != null) {
-        return AuthsignalResponse(data: AppChallenge.fromMap(data));
-      } else {
-        return AuthsignalResponse(data: null);
-      }
-    } on PlatformException catch (ex) {
-      return AuthsignalResponse.fromError(ex);
-    }
-  }
-
-  Future<AuthsignalResponse<bool>> updateChallenge(
-      {required String challengeId,
-      required bool approved,
-      String? verificationCode}) async {
-    await initCheck();
-
-    var arguments = <String, dynamic>{
-      'challengeId': challengeId,
-      'approved': approved
-    };
-
-    arguments['verificationCode'] = verificationCode;
-
-    try {
-      final data = await methodChannel.invokeMethod<bool>(
-          'push.updateChallenge', arguments);
-
-      if (data != null) {
-        return AuthsignalResponse(data: data);
+        return AuthsignalResponse(data: InAppVerifyResponse.fromMap(data));
       } else {
         return AuthsignalResponse(data: null);
       }
@@ -108,3 +81,4 @@ class AuthsignalPush {
     }
   }
 }
+
