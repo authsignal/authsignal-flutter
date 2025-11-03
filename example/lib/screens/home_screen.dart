@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onInitialize: _initializeAuthsignal,
             ),
             const SizedBox(height: 16),
-            _buildDeviceCredentialsCard(),
+            _buildInAppAuthCard(),
             const SizedBox(height: 16),
             _buildWhatsAppSection(),
             const SizedBox(height: 16),
@@ -146,28 +146,28 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDeviceCredentialsCard() {
+  Widget _buildInAppAuthCard() {
     return FeatureCard(
-      title: '🔐 Device Credentials (Trusted Device)',
-      description: 'Secure device-based authentication using cryptographic keys',
+      title: '🔐 In-App Verification (Trusted Device)',
+      description: 'Secure device-based authentication using cryptographic keys stored on this device',
       actions: [
         ElevatedButton.icon(
-          onPressed: _isInitialized ? _getDeviceCredential : null,
+          onPressed: _isInitialized ? _getInAppCredential : null,
           icon: const Icon(Icons.info, size: 18),
           label: const Text('Get Credential'),
         ),
         ElevatedButton.icon(
-          onPressed: _isInitialized ? _addDeviceCredential : null,
+          onPressed: _isInitialized ? _addInAppCredential : null,
           icon: const Icon(Icons.add_circle, size: 18),
           label: const Text('Add Credential'),
         ),
         ElevatedButton.icon(
-          onPressed: _isInitialized ? _verifyDevice : null,
+          onPressed: _isInitialized ? _verifyInApp : null,
           icon: const Icon(Icons.verified_user, size: 18),
           label: const Text('Verify Device'),
         ),
         ElevatedButton.icon(
-          onPressed: _isInitialized ? _removeDeviceCredential : null,
+          onPressed: _isInitialized ? _removeInAppCredential : null,
           icon: const Icon(Icons.remove_circle, size: 18),
           label: const Text('Remove'),
         ),
@@ -230,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildOtherFeaturesCard() {
     return FeatureCard(
       title: '🔧 Other Features',
-      description: 'Additional authentication methods (coming soon to this example)',
+      description: 'Additional authentication methods available in the SDK',
       actions: [
         OutlinedButton.icon(
           onPressed: null,
@@ -252,24 +252,35 @@ class _HomeScreenState extends State<HomeScreen> {
           icon: const Icon(Icons.qr_code, size: 18),
           label: const Text('TOTP'),
         ),
+        OutlinedButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.qr_code_scanner, size: 18),
+          label: const Text('QR Code Auth'),
+        ),
+        OutlinedButton.icon(
+          onPressed: null,
+          icon: const Icon(Icons.notifications, size: 18),
+          label: const Text('Push Auth'),
+        ),
       ],
     );
   }
 
-  // Device Credentials Methods
+  // In-App Verification (Trusted Device) Methods
 
-  Future<void> _getDeviceCredential() async {
+  Future<void> _getInAppCredential() async {
     try {
-      _addOutput('🔍 Getting device credential...');
-      final result = await authsignal.device.getCredential();
+      _addOutput('🔍 Getting trusted device credential...');
+      final result = await authsignal.inapp.getCredential();
 
       if (result.data != null) {
-        _addOutput('✅ Device credential found!');
+        _addOutput('✅ Trusted device credential found!');
         _addOutput('   Credential ID: ${result.data!.credentialId}');
         _addOutput('   Created: ${result.data!.createdAt}');
         _addOutput('   User: ${result.data!.userId}');
       } else {
         _addOutput('ℹ️ No device credential found');
+        _addOutput('   This device is not yet registered as trusted');
         _addOutput('   Add a credential first using "Add Credential"');
       }
     } catch (e) {
@@ -277,7 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _addDeviceCredential() async {
+  Future<void> _addInAppCredential() async {
     try {
       _addOutput('📝 Requesting registration token from backend...');
       final tokenResponse = await backendService.getRegistrationToken(
@@ -293,17 +304,14 @@ class _HomeScreenState extends State<HomeScreen> {
       _addOutput('✅ Token received (${tokenResponse.state})');
       await authsignal.setToken(tokenResponse.token);
 
-      _addOutput('🔐 Adding device credential...');
-      final result = await authsignal.device.addCredential(
-        token: tokenResponse.token,
-        deviceName: 'Flutter Example Device',
-        userAuthenticationRequired: false,
-      );
+      _addOutput('🔐 Registering this device as trusted...');
+      final result = await authsignal.inapp.addCredential(token: tokenResponse.token);
 
       if (result.data != null) {
-        _addOutput('✅ Device credential added successfully!');
+        _addOutput('✅ Trusted device credential added!');
         _addOutput('   Credential ID: ${result.data!.credentialId}');
-        _addOutput('   This device is now registered');
+        _addOutput('   User ID: ${result.data!.userId}');
+        _addOutput('   This device is now registered as trusted');
       } else {
         _addOutput('❌ Failed to add credential: ${result.error}');
       }
@@ -312,7 +320,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _verifyDevice() async {
+  Future<void> _verifyInApp() async {
     try {
       _addOutput('📝 Getting challenge token from backend...');
       final tokenResponse = await backendService.getChallengeToken(
@@ -328,15 +336,15 @@ class _HomeScreenState extends State<HomeScreen> {
       _addOutput('✅ Challenge token received (${tokenResponse.state})');
       await authsignal.setToken(tokenResponse.token);
 
-      _addOutput('🔐 Verifying device...');
-      final result = await authsignal.device.verify();
+      _addOutput('🔐 Verifying this trusted device...');
+      final result = await authsignal.inapp.verify();
 
       if (result.data != null) {
         _addOutput('✅ Device verification successful!');
         _addOutput('   Token: ${result.data!.token.substring(0, 20)}...');
         _addOutput('   User: ${result.data!.userId}');
         _addOutput('   Auth ID: ${result.data!.userAuthenticatorId}');
-        _addOutput('🎉 Device authentication completed!');
+        _addOutput('🎉 Trusted device authentication completed!');
       } else {
         _addOutput('❌ Verification failed: ${result.error}');
       }
@@ -345,13 +353,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _removeDeviceCredential() async {
+  Future<void> _removeInAppCredential() async {
     try {
-      _addOutput('🗑️ Removing device credential...');
-      final result = await authsignal.device.removeCredential();
+      _addOutput('🗑️ Removing trusted device credential...');
+      final result = await authsignal.inapp.removeCredential();
 
       if (result.data == true) {
         _addOutput('✅ Device credential removed successfully');
+        _addOutput('   This device is no longer trusted');
       } else {
         _addOutput('❌ Failed to remove credential: ${result.error}');
       }
