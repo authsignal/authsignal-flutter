@@ -16,9 +16,16 @@ export 'package:authsignal_flutter_platform_interface/authsignal_flutter_platfor
     show
         AuthsignalResponse,
         TokenPayload,
+        TokenPayloadOther,
         ErrorCode,
         AppCredential,
         AppChallenge,
+        SignUpResponse,
+        SignInResponse,
+        EnrollResponse,
+        EnrollTotpResponse,
+        ChallengeResponse,
+        VerifyResponse,
         ClaimChallengeResponse,
         InAppVerifyResponse;
 
