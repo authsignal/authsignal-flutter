@@ -25,15 +25,22 @@ class AuthsignalConfig {
 
 ### 3. Set up backend server
 
-The example requires a mock server to generate tokens. Only use an API secret key from a non-production tenant when running this server.
+The example requires a backend server to generate tokens. This server uses the Authsignal Node.js SDK (v2.12.0).
+
+⚠️ **Security:** Only use an API secret key from a non-production tenant when running this server.
 
 ```bash
 cd backend
 npm install
 ```
 
-Update `backend/.env`:
+Copy and update the environment file:
+```bash
+cp .env.example .env
 ```
+
+Then edit `backend/.env`:
+```env
 AUTHSIGNAL_SECRET=your_secret_key
 AUTHSIGNAL_TENANT_ID=your_tenant_id
 AUTHSIGNAL_BASE_URL=https://api.authsignal.com/v1
@@ -43,7 +50,11 @@ PORT=3000
 Start the server:
 ```bash
 npm start
+# Or for development with auto-reload:
+npm run dev
 ```
+
+📖 See [backend/README.md](backend/README.md) for detailed backend documentation, API endpoints, and troubleshooting.
 
 ### 4. Run the example app
 

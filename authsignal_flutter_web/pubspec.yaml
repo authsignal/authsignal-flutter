@@ -1,0 +1,30 @@
+name: authsignal_flutter_web
+description: Web implementation of the Authsignal Flutter plugin
+version: 0.0.1
+homepage: https://github.com/authsignal/authsignal-flutter
+
+environment:
+  sdk: ">=3.2.2 <4.0.0"
+  flutter: ">=3.3.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  js: ^0.6.7
+  authsignal_flutter_platform_interface:
+    path: ../authsignal_flutter_platform_interface
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  plugin:
+    implements: authsignal_flutter
+    platforms:
+      web:
+        pluginClass: AuthsignalFlutterWeb
+        fileName: authsignal_flutter_web.dart

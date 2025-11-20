@@ -81,7 +81,7 @@ app.post('/api/registration-token', async (req, res) => {
 
 app.post('/api/challenge-token', async (req, res) => {
   try {
-    const { userId, phoneNumber } = req.body;
+    const { userId, phoneNumber, email } = req.body;
 
     if (!userId) {
       return res.status(400).json({
@@ -91,11 +91,16 @@ app.post('/api/challenge-token', async (req, res) => {
 
     console.log(`  Tracking 'signIn' for user: ${userId}`);
 
+    // Build attributes object with phoneNumber and/or email if provided
+    const attributes = {};
+    if (phoneNumber) attributes.phoneNumber = phoneNumber;
+    if (email) attributes.email = email;
+
     // Track the action
     const trackResponse = await authsignal.track({
       userId,
       action: 'signIn',
-      attributes: phoneNumber ? { phoneNumber } : undefined,
+      attributes: Object.keys(attributes).length > 0 ? attributes : undefined,
     });
 
     console.log(`  ✅ Token generated (state: ${trackResponse.state})`);

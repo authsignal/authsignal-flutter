@@ -10,6 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  authsignal_flutter_platform_interface:
+    path: authsignal_flutter_platform_interface
+  authsignal_flutter_web:
+    path: authsignal_flutter_web
   plugin_platform_interface: ^2.0.2
 
 dev_dependencies:
@@ -25,3 +29,5 @@ flutter:
         pluginClass: AuthsignalPlugin
       ios:
         pluginClass: AuthsignalPlugin
+      web:
+        default_package: authsignal_flutter_web

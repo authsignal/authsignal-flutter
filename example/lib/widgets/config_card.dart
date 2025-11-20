@@ -5,6 +5,7 @@ class ConfigCard extends StatelessWidget {
   final bool isConfigured;
   final bool backendHealthy;
   final TextEditingController userIdController;
+  final TextEditingController emailController;
   final TextEditingController phoneController;
   final VoidCallback onInitialize;
 
@@ -14,6 +15,7 @@ class ConfigCard extends StatelessWidget {
     required this.isConfigured,
     required this.backendHealthy,
     required this.userIdController,
+    required this.emailController,
     required this.phoneController,
     required this.onInitialize,
   });
@@ -79,6 +81,17 @@ class ConfigCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email Address',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
+                helperText: 'Used for Email OTP demos',
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 12),
+            TextField(
               controller: phoneController,
               decoration: const InputDecoration(
                 labelText: 'Phone Number (for OTP)',
@@ -135,4 +148,3 @@ class ConfigCard extends StatelessWidget {
     );
   }
 }
-

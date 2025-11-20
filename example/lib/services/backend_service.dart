@@ -36,15 +36,17 @@ class BackendService {
   Future<ChallengeTokenResponse?> getChallengeToken({
     required String userId,
     String? phoneNumber,
+    String? email,
   }) async {
     try {
+      final body = {'userId': userId};
+      if (phoneNumber != null) body['phoneNumber'] = phoneNumber;
+      if (email != null) body['email'] = email;
+
       final response = await http.post(
         Uri.parse('$baseUrl/api/challenge-token'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'userId': userId,
-          'phoneNumber': phoneNumber,
-        }),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode == 200) {

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import 'types.dart';
+import 'package:authsignal_flutter_platform_interface/authsignal_flutter_platform_interface.dart';
 
 class AuthsignalTotp {
   final AsyncCallback initCheck;
