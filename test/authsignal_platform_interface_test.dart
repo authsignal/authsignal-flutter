@@ -1,5 +1,5 @@
 import 'package:authsignal_flutter/authsignal_flutter.dart';
-import 'package:authsignal_flutter_platform_interface/authsignal_flutter_platform_interface.dart';
+import 'package:authsignal_flutter/src/authsignal_flutter_platform.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _MockAuthsignalPlatform extends AuthsignalFlutterPlatform {

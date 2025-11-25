@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:authsignal_flutter_platform_interface/authsignal_flutter_platform_interface.dart';
-
+import 'src/authsignal_flutter_platform.dart';
 import 'src/authsignal_passkey.dart';
 import 'src/authsignal_push.dart';
 import 'src/authsignal_email.dart';
@@ -12,7 +11,7 @@ import 'src/authsignal_qr.dart';
 import 'src/authsignal_inapp.dart';
 import 'src/method_channel_authsignal_flutter.dart';
 
-export 'package:authsignal_flutter_platform_interface/authsignal_flutter_platform_interface.dart'
+export 'src/types.dart'
     show
         AuthsignalResponse,
         TokenPayload,
