@@ -1,3 +1,13 @@
+## 2.1.0
+
+### Flutter Web Support
+
+- Federated plugin structure with shared platform interface and dedicated web implementation.
+- Flutter web support for email OTP and passkeys via Authsignal Browser SDK (automatic script loading, no manual `<script>` tag required).
+- Passkey flows (`signUp`, `signIn`) for Flutter web apps ([docs](https://docs.authsignal.com/sdks/client/web/passkeys)).
+- Public API updated so `Authsignal` initialization, `setToken`, and authenticator methods delegate through platform interface.
+- Example app extended with passkey and email OTP demos.
+
 ## 2.0.0
 
 ### Breaking Changes
