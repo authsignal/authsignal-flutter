@@ -3,9 +3,11 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js_util' as js_util;
 
-import 'package:authsignal_flutter_platform_interface/authsignal_flutter_platform_interface.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+
+import 'authsignal_flutter_platform.dart';
+import 'types.dart';
 
 class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
   AuthsignalFlutterWeb();
@@ -459,3 +461,4 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     return js_util.hasProperty(html.window, 'PublicKeyCredential');
   }
 }
+

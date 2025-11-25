@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:authsignal_flutter_platform_interface/authsignal_flutter_platform_interface.dart';
+import 'authsignal_flutter_platform.dart';
+import 'types.dart';
 
 class AuthsignalEmail {
   final AsyncCallback initCheck;

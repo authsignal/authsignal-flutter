@@ -68,3 +68,4 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
 }
 
 class _TokenAuthsignalFlutterPlatform extends AuthsignalFlutterPlatform {}
+
