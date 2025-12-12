@@ -1,13 +1,25 @@
 import 'dart:async';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:html' as html;
-import 'dart:js_util' as js_util;
+import 'dart:js_interop';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:web/web.dart' as web;
 
 import 'authsignal_flutter_platform.dart';
 import 'types.dart';
+
+// JS interop bindings
+@JS('Reflect.construct')
+external JSObject _jsConstruct(JSFunction target, JSArray args);
+
+@JS('Reflect.has')
+external bool _jsHas(JSObject target, JSString propertyKey);
+
+@JS('Reflect.get')
+external JSAny? _jsGet(JSObject target, JSString propertyKey);
+
+@JS('Reflect.apply')
+external JSAny? _jsApply(JSFunction target, JSObject thisArg, JSArray args);
 
 class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
   AuthsignalFlutterWeb();
@@ -25,7 +37,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
   static const int _scriptLoadTimeoutMs = 10000;
   static const int _scriptLoadCheckIntervalMs = 100;
 
-  Object? _client;
+  JSObject? _client;
   String? _tenantId;
   String? _baseUrl;
   String? _pendingToken;
@@ -47,20 +59,20 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
           'Error: $e');
     }
 
-    final constructor = js_util.getProperty(html.window, 'Authsignal');
+    final constructor = _getWindowProperty('Authsignal');
     if (constructor == null) {
       throw StateError(
           'Authsignal browser SDK loaded but constructor is not available. '
           'This may indicate a version mismatch or CDN issue.');
     }
 
-    final options = js_util.jsify({
+    final options = <String, dynamic>{
       'tenantId': tenantId,
       'baseUrl': baseUrl,
-    });
+    }.jsify()!;
 
     try {
-      _client = js_util.callConstructor(constructor, [options]);
+      _client = _jsConstruct(constructor as JSFunction, [options].toJS);
       _tenantId = tenantId;
       _baseUrl = baseUrl;
 
@@ -85,7 +97,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     }
 
     try {
-      js_util.callMethod<void>(_client!, 'setToken', [token]);
+      _callMethod(_client!, 'setToken', [token.toJS]);
       _sessionToken = token;
     } catch (e) {
       throw StateError('Failed to set authentication token: $e');
@@ -103,9 +115,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeEmailMethod(
       'enroll',
-      [
-        js_util.jsify({'email': email})
-      ],
+      [<String, dynamic>{'email': email}.jsify()!],
       (map) => EnrollResponse.fromMap(map),
     );
   }
@@ -130,9 +140,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeEmailMethod(
       'verify',
-      [
-        js_util.jsify({'code': code})
-      ],
+      [<String, dynamic>{'code': code}.jsify()!],
       (map) => VerifyResponse.fromMap(map),
     );
   }
@@ -210,15 +218,14 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       return;
     }
 
-    final passkeyApi = js_util.getProperty(client, 'passkey');
-    if (passkeyApi == null || !js_util.hasProperty(passkeyApi, 'cancel')) {
+    final passkeyApi = _getProperty(client, 'passkey') as JSObject?;
+    if (passkeyApi == null || !_hasProperty(passkeyApi, 'cancel')) {
       return;
     }
 
     try {
-      js_util.callMethod<void>(passkeyApi, 'cancel', const []);
-    } catch (_) {
-    }
+      _callMethod(passkeyApi, 'cancel', const []);
+    } catch (_) {}
   }
 
   @override
@@ -229,17 +236,20 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       return AuthsignalResponse(data: _isWebAuthnAvailable());
     }
 
-    final passkeyApi = js_util.getProperty(client, 'passkey');
-    if (passkeyApi != null && js_util.hasProperty(passkeyApi, 'isAvailable')) {
+    final passkeyApi = _getProperty(client, 'passkey') as JSObject?;
+    if (passkeyApi != null && _hasProperty(passkeyApi, 'isAvailable')) {
       try {
-        final result = await js_util.promiseToFuture<Object?>(
-          js_util.callMethod(passkeyApi, 'isAvailable', const []),
-        );
-        if (result is bool) {
-          return AuthsignalResponse(data: result);
+        final jsPromise = _callMethod(passkeyApi, 'isAvailable', const []);
+        if (jsPromise != null) {
+          final result = await (jsPromise as JSPromise).toDart;
+          if (result != null) {
+            final dartResult = result.dartify();
+            if (dartResult is bool) {
+              return AuthsignalResponse(data: dartResult);
+            }
+          }
         }
-      } catch (_) {
-      }
+      } catch (_) {}
     }
 
     return AuthsignalResponse(data: _isWebAuthnAvailable());
@@ -251,7 +261,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
   Future<AuthsignalResponse<T>> _invokeEmailMethod<T>(
     String method,
-    List<Object?> arguments,
+    List<JSAny> arguments,
     T Function(Map<String, dynamic> data) parser,
   ) async {
     final client = _client;
@@ -259,7 +269,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       return _clientNotInitializedResponse<T>();
     }
 
-    final emailApi = js_util.getProperty(client, 'email');
+    final emailApi = _getProperty(client, 'email');
     if (emailApi == null) {
       return AuthsignalResponse.withError(
         error: 'Email API is not available in the browser SDK. '
@@ -269,10 +279,12 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     }
 
     try {
-      final jsResult = await js_util.promiseToFuture<Object?>(
-        js_util.callMethod(emailApi, method, arguments),
-      );
-      return _mapResponse(jsResult, parser);
+      final jsResult = _callMethod(emailApi as JSObject, method, arguments);
+      if (jsResult == null) {
+        return AuthsignalResponse(data: null);
+      }
+      final result = await (jsResult as JSPromise).toDart;
+      return _mapResponse(result, parser);
     } catch (error) {
       return _responseFromJsError(error);
     }
@@ -287,12 +299,12 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
   }
 
   Future<AuthsignalResponse<T>> _invokePasskeyMethod<T>(
-    Object client,
+    JSObject client,
     String method,
     Map<String, dynamic> payload,
     T Function(Map<String, dynamic> data) parser,
   ) async {
-    final passkeyApi = js_util.getProperty(client, 'passkey');
+    final passkeyApi = _getProperty(client, 'passkey');
     if (passkeyApi == null) {
       return AuthsignalResponse.withError(
         error: 'Passkey API is not available in the browser SDK. '
@@ -301,27 +313,29 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       );
     }
 
-    final args = payload.isEmpty ? const [] : <Object?>[js_util.jsify(payload)];
+    final args = payload.isEmpty ? <JSAny>[] : <JSAny>[payload.jsify()!];
 
     try {
-      final jsResult = await js_util.promiseToFuture<Object?>(
-        js_util.callMethod(passkeyApi, method, args),
-      );
-      return _mapResponse(jsResult, parser);
+      final jsResult = _callMethod(passkeyApi as JSObject, method, args);
+      if (jsResult == null) {
+        return AuthsignalResponse(data: null);
+      }
+      final result = await (jsResult as JSPromise).toDart;
+      return _mapResponse(result, parser);
     } catch (error) {
       return _responseFromJsError(error);
     }
   }
 
   AuthsignalResponse<T> _mapResponse<T>(
-    Object? jsResult,
+    JSAny? jsResult,
     T Function(Map<String, dynamic> data) parser,
   ) {
     if (jsResult == null) {
       return AuthsignalResponse(data: null);
     }
 
-    final dartified = js_util.dartify(jsResult);
+    final dartified = jsResult.dartify();
     if (dartified is! Map) {
       return AuthsignalResponse(data: null);
     }
@@ -347,20 +361,27 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     String? code;
 
     try {
-      if (js_util.hasProperty(error, 'message')) {
-        final value = js_util.getProperty(error, 'message');
-        message = value?.toString();
+      if (error is JSObject) {
+        if (_hasProperty(error, 'message')) {
+          final value = _getProperty(error, 'message');
+          if (value != null) {
+            final dartValue = value.dartify();
+            if (dartValue is String) {
+              message = dartValue;
+            }
+          }
+        }
+        if (_hasProperty(error, 'code')) {
+          final value = _getProperty(error, 'code');
+          if (value != null) {
+            final dartValue = value.dartify();
+            if (dartValue is String) {
+              code = dartValue;
+            }
+          }
+        }
       }
-    } catch (_) {
-    }
-
-    try {
-      if (js_util.hasProperty(error, 'code')) {
-        final value = js_util.getProperty(error, 'code');
-        code = value?.toString();
-      }
-    } catch (_) {
-    }
+    } catch (_) {}
 
     message ??= error.toString();
 
@@ -397,26 +418,23 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       return;
     }
 
-    final existing = html.document.getElementById(_scriptElementId);
-    if (existing is html.ScriptElement) {
+    final existing = web.document.getElementById(_scriptElementId);
+    if (existing != null) {
       await _waitForBrowserSdk(onFail: () {
         existing.remove();
       });
       return;
     }
 
-    final script = html.ScriptElement()
+    final script = web.document.createElement('script') as web.HTMLScriptElement
       ..id = _scriptElementId
       ..type = 'module'
       ..text = '''
         import { Authsignal } from '$_browserModuleUrl';
         window.Authsignal = Authsignal;
-      '''
-      ..onError.listen((event) {
-        _scriptLoader = null;
-      });
+      ''';
 
-    html.document.head?.append(script);
+    web.document.head?.append(script);
     await _waitForBrowserSdk(onFail: () {
       script.remove();
     });
@@ -427,7 +445,8 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     const maxAttempts = _scriptLoadTimeoutMs ~/ _scriptLoadCheckIntervalMs;
     var attempt = 0;
 
-    Timer.periodic(const Duration(milliseconds: _scriptLoadCheckIntervalMs), (timer) {
+    Timer.periodic(
+        const Duration(milliseconds: _scriptLoadCheckIntervalMs), (timer) {
       if (_hasBrowserSdk()) {
         timer.cancel();
         if (!completer.isCompleted) {
@@ -454,11 +473,33 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
   }
 
   bool _hasBrowserSdk() {
-    return js_util.hasProperty(html.window, 'Authsignal');
+    return _hasWindowProperty('Authsignal');
   }
 
   bool _isWebAuthnAvailable() {
-    return js_util.hasProperty(html.window, 'PublicKeyCredential');
+    return _hasWindowProperty('PublicKeyCredential');
+  }
+
+  // JS interop helpers
+  JSAny? _getWindowProperty(String name) {
+    return _jsGet(web.window as JSObject, name.toJS);
+  }
+
+  bool _hasWindowProperty(String name) {
+    return _jsHas(web.window as JSObject, name.toJS);
+  }
+
+  JSAny? _getProperty(JSObject obj, String name) {
+    return _jsGet(obj, name.toJS);
+  }
+
+  bool _hasProperty(JSObject obj, String name) {
+    return _jsHas(obj, name.toJS);
+  }
+
+  JSAny? _callMethod(JSObject obj, String method, List<JSAny> args) {
+    final fn = _getProperty(obj, method);
+    if (fn == null) return null;
+    return _jsApply(fn as JSFunction, obj, args.toJS);
   }
 }
-
