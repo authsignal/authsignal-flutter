@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'authsignal_flutter_platform.dart';
 import 'types.dart';
 
 class AuthsignalTotp {
@@ -13,6 +14,10 @@ class AuthsignalTotp {
 
   Future<AuthsignalResponse<EnrollTotpResponse>> enroll() async {
     await initCheck();
+
+    if (kIsWeb) {
+      return AuthsignalFlutterPlatform.instance.totpEnroll();
+    }
 
     try {
       final data =
@@ -30,6 +35,10 @@ class AuthsignalTotp {
 
   Future<AuthsignalResponse<VerifyResponse>> verify(String code) async {
     await initCheck();
+
+    if (kIsWeb) {
+      return AuthsignalFlutterPlatform.instance.totpVerify(code);
+    }
 
     var arguments = <String, dynamic>{'code': code};
 
