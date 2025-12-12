@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'authsignal_flutter_platform.dart';
 import 'types.dart';
 
 class AuthsignalWhatsApp {
@@ -13,6 +14,10 @@ class AuthsignalWhatsApp {
 
   Future<AuthsignalResponse<ChallengeResponse>> challenge() async {
     await initCheck();
+
+    if (kIsWeb) {
+      return AuthsignalFlutterPlatform.instance.whatsappChallenge();
+    }
 
     try {
       final data = await methodChannel
@@ -30,6 +35,10 @@ class AuthsignalWhatsApp {
 
   Future<AuthsignalResponse<VerifyResponse>> verify(String code) async {
     await initCheck();
+
+    if (kIsWeb) {
+      return AuthsignalFlutterPlatform.instance.whatsappVerify(code);
+    }
 
     var arguments = <String, dynamic>{'code': code};
 

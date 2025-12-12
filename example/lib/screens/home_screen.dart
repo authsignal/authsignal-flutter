@@ -22,6 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _emailCodeController = TextEditingController();
+  final TextEditingController _smsCodeController = TextEditingController();
+  final TextEditingController _totpCodeController = TextEditingController();
 
   final List<String> _outputLog = [];
   bool _isInitialized = false;
@@ -329,9 +331,11 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             _buildEmailOtpSection(),
             const SizedBox(height: 16),
+            _buildSmsOtpSection(),
+            const SizedBox(height: 16),
             _buildWhatsAppSection(),
             const SizedBox(height: 16),
-            _buildOtherFeaturesCard(),
+            _buildTotpSection(),
             const SizedBox(height: 16),
             OutputConsole(output: _outputLog.join('\n')),
           ],
@@ -470,6 +474,61 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildSmsOtpSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '📱 SMS OTP (web + mobile)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Send and verify one-time passwords via SMS',
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _smsCodeController,
+              decoration: const InputDecoration(
+                labelText: 'SMS OTP Code',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.password),
+              ),
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _sendSmsEnroll : null,
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  label: const Text('Enroll SMS'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _sendSmsChallenge : null,
+                  icon: const Icon(Icons.send, size: 18),
+                  label: const Text('Challenge SMS'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _verifySmsOtp : null,
+                  icon: const Icon(Icons.check_circle, size: 18),
+                  label: const Text('Verify Code'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildWhatsAppSection() {
     return Card(
       child: Padding(
@@ -478,7 +537,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              '📱 WhatsApp OTP (mobile)',
+              '💬 WhatsApp OTP (web + mobile)',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
@@ -490,7 +549,7 @@ class _HomeScreenState extends State<HomeScreen> {
             TextField(
               controller: _otpController,
               decoration: const InputDecoration(
-                labelText: 'OTP Code',
+                labelText: 'WhatsApp OTP Code',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.password),
               ),
@@ -508,9 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   label: const Text('Send OTP'),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _isInitialized && _otpController.text.isNotEmpty
-                      ? _verifyWhatsAppOTP
-                      : null,
+                  onPressed: _isInitialized ? _verifyWhatsAppOTP : null,
                   icon: const Icon(Icons.check_circle, size: 18),
                   label: const Text('Verify OTP'),
                 ),
@@ -522,42 +579,53 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildOtherFeaturesCard() {
-    return FeatureCard(
-      title: '🔧 Other Features',
-      description: 'Additional authentication methods available in the SDK',
-      actions: [
-        OutlinedButton.icon(
-          onPressed: null,
-          icon: const Icon(Icons.email, size: 18),
-          label: const Text('Email OTP'),
+  Widget _buildTotpSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '🔐 TOTP / Authenticator App (web + mobile)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Enroll and verify using authenticator apps like Google Authenticator',
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _totpCodeController,
+              decoration: const InputDecoration(
+                labelText: 'TOTP Code',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.qr_code),
+              ),
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _enrollTotp : null,
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  label: const Text('Enroll TOTP'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _verifyTotp : null,
+                  icon: const Icon(Icons.check_circle, size: 18),
+                  label: const Text('Verify TOTP'),
+                ),
+              ],
+            ),
+          ],
         ),
-        OutlinedButton.icon(
-          onPressed: null,
-          icon: const Icon(Icons.sms, size: 18),
-          label: const Text('SMS OTP'),
-        ),
-        OutlinedButton.icon(
-          onPressed: null,
-          icon: const Icon(Icons.fingerprint, size: 18),
-          label: const Text('Passkeys'),
-        ),
-        OutlinedButton.icon(
-          onPressed: null,
-          icon: const Icon(Icons.qr_code, size: 18),
-          label: const Text('TOTP'),
-        ),
-        OutlinedButton.icon(
-          onPressed: null,
-          icon: const Icon(Icons.qr_code_scanner, size: 18),
-          label: const Text('QR Code Auth'),
-        ),
-        OutlinedButton.icon(
-          onPressed: null,
-          icon: const Icon(Icons.notifications, size: 18),
-          label: const Text('Push Auth'),
-        ),
-      ],
+      ),
     );
   }
 
@@ -665,6 +733,122 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // SMS OTP Methods
+
+  Future<void> _sendSmsEnroll() async {
+    final phoneNumber = _phoneController.text.trim();
+    if (phoneNumber.isEmpty) {
+      _addOutput('⚠️ Enter a phone number to enroll.');
+      return;
+    }
+
+    try {
+      _addOutput('📝 Requesting registration token from backend...');
+      final tokenResponse = await backendService.getRegistrationToken(
+        _userIdController.text,
+      );
+
+      if (tokenResponse == null) {
+        _addOutput('❌ Failed to get registration token');
+        _addOutput('   Check backend connection');
+        return;
+      }
+
+      _addOutput('✅ Token received (${tokenResponse.state})');
+      await authsignal.setToken(tokenResponse.token);
+
+      _addOutput('📱 Requesting enrollment OTP for $phoneNumber...');
+      final response = await authsignal.sms.enroll(phoneNumber);
+
+      if (response.error != null) {
+        _addOutput('❌ Failed to enroll SMS: ${response.error}');
+        return;
+      }
+
+      final authId = response.data?.userAuthenticatorId;
+      _addOutput('✅ Enrollment SMS sent to $phoneNumber');
+      if (authId != null) {
+        _addOutput('   Authenticator ID: $authId');
+      }
+      _addOutput('   Enter the received code and tap "Verify Code".');
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _sendSmsChallenge() async {
+    try {
+      final phoneNumber = _phoneController.text.trim();
+      if (phoneNumber.isEmpty) {
+        _addOutput('⚠️ Enter a phone number.');
+        return;
+      }
+
+      _addOutput('📝 Getting challenge token from backend...');
+      final tokenResponse = await backendService.getChallengeToken(
+        userId: _userIdController.text,
+        phoneNumber: phoneNumber,
+      );
+
+      if (tokenResponse == null) {
+        _addOutput('❌ Failed to get challenge token');
+        return;
+      }
+
+      _addOutput('✅ Challenge token received (${tokenResponse.state})');
+      await authsignal.setToken(tokenResponse.token);
+
+      _addOutput('📱 Sending challenge SMS to $phoneNumber...');
+      final response = await authsignal.sms.challenge();
+
+      if (response.error != null) {
+        _addOutput('❌ Failed to send challenge SMS: ${response.error}');
+        return;
+      }
+
+      final challengeId = response.data?.challengeId;
+      if (challengeId != null) {
+        _addOutput('✅ Challenge created (ID: $challengeId). Check your SMS.');
+      } else {
+        _addOutput('✅ Challenge initiated. Check your phone for the code.');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _verifySmsOtp() async {
+    final code = _smsCodeController.text.trim();
+    if (code.isEmpty) {
+      _addOutput('⚠️ Enter the SMS OTP code before verifying.');
+      return;
+    }
+
+    try {
+      _addOutput('🔍 Verifying SMS OTP...');
+      final response = await authsignal.sms.verify(code);
+
+      if (response.error != null) {
+        _addOutput('❌ Verification failed: ${response.error}');
+        return;
+      }
+
+      if (response.data?.isVerified == true) {
+        _addOutput('✅ SMS OTP verified successfully!');
+        if (response.data?.token != null) {
+          _addOutput('   Token: ${response.data!.token!.substring(0, 20)}...');
+        }
+      } else {
+        _addOutput('⚠️ Verification response received but not marked verified.');
+        if (response.data?.failureReason != null) {
+          _addOutput('   Reason: ${response.data!.failureReason}');
+        }
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
   // WhatsApp Methods
 
   Future<void> _sendWhatsAppOTP() async {
@@ -698,9 +882,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _verifyWhatsAppOTP() async {
+    final code = _otpController.text.trim();
+    if (code.isEmpty) {
+      _addOutput('⚠️ Enter the WhatsApp OTP code before verifying.');
+      return;
+    }
+
     try {
-      _addOutput('🔍 Verifying WhatsApp OTP: ${_otpController.text}');
-      final result = await authsignal.whatsapp.verify(_otpController.text);
+      _addOutput('🔍 Verifying WhatsApp OTP: $code');
+      final result = await authsignal.whatsapp.verify(code);
 
       if (result.data != null) {
         if (result.data!.isVerified) {
@@ -720,11 +910,87 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // TOTP Methods
+
+  Future<void> _enrollTotp() async {
+    try {
+      _addOutput('📝 Requesting registration token from backend...');
+      final tokenResponse = await backendService.getRegistrationToken(
+        _userIdController.text,
+      );
+
+      if (tokenResponse == null) {
+        _addOutput('❌ Failed to get registration token');
+        _addOutput('   Check backend connection');
+        return;
+      }
+
+      _addOutput('✅ Token received (${tokenResponse.state})');
+      await authsignal.setToken(tokenResponse.token);
+
+      _addOutput('🔐 Enrolling TOTP authenticator...');
+      final response = await authsignal.totp.enroll();
+
+      if (response.error != null) {
+        _addOutput('❌ Failed to enroll TOTP: ${response.error}');
+        return;
+      }
+
+      final data = response.data;
+      if (data != null) {
+        _addOutput('✅ TOTP enrolled successfully!');
+        _addOutput('   Authenticator ID: ${data.userAuthenticatorId}');
+        _addOutput('   Secret: ${data.secret}');
+        _addOutput('   URI: ${data.uri}');
+        _addOutput('   Scan the QR code or enter the secret in your authenticator app.');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _verifyTotp() async {
+    final code = _totpCodeController.text.trim();
+    if (code.isEmpty) {
+      _addOutput('⚠️ Enter the TOTP code from your authenticator app.');
+      return;
+    }
+
+    try {
+      _addOutput('🔍 Verifying TOTP code...');
+      final response = await authsignal.totp.verify(code);
+
+      if (response.error != null) {
+        _addOutput('❌ Verification failed: ${response.error}');
+        return;
+      }
+
+      if (response.data?.isVerified == true) {
+        _addOutput('✅ TOTP verified successfully!');
+        if (response.data?.token != null) {
+          _addOutput('   Token: ${response.data!.token!.substring(0, 20)}...');
+        }
+        _addOutput('🎉 Authentication completed!');
+      } else {
+        _addOutput('⚠️ Verification response received but not marked verified.');
+        if (response.data?.failureReason != null) {
+          _addOutput('   Reason: ${response.data!.failureReason}');
+        }
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
   @override
   void dispose() {
     _userIdController.dispose();
+    _emailController.dispose();
     _phoneController.dispose();
     _otpController.dispose();
+    _emailCodeController.dispose();
+    _smsCodeController.dispose();
+    _totpCodeController.dispose();
     super.dispose();
   }
 }

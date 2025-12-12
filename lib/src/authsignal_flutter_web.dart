@@ -254,6 +254,190 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     return AuthsignalResponse(data: _isWebAuthnAvailable());
   }
 
+  @override
+  Future<AuthsignalResponse<EnrollResponse>> smsEnroll(String phoneNumber) {
+    if (phoneNumber.trim().isEmpty) {
+      return Future.value(AuthsignalResponse.withError(
+        error: 'Phone number is required',
+        errorCode: 'invalid_input',
+      ));
+    }
+
+    return _invokeSmsMethod(
+      'enroll',
+      [<String, dynamic>{'phoneNumber': phoneNumber}.jsify()!],
+      (map) => EnrollResponse.fromMap(map),
+    );
+  }
+
+  @override
+  Future<AuthsignalResponse<ChallengeResponse>> smsChallenge() {
+    return _invokeSmsMethod(
+      'challenge',
+      const [],
+      (map) => ChallengeResponse.fromMap(map),
+    );
+  }
+
+  @override
+  Future<AuthsignalResponse<VerifyResponse>> smsVerify(String code) {
+    if (code.trim().isEmpty) {
+      return Future.value(AuthsignalResponse.withError(
+        error: 'Verification code is required',
+        errorCode: 'invalid_input',
+      ));
+    }
+
+    return _invokeSmsMethod(
+      'verify',
+      [<String, dynamic>{'code': code}.jsify()!],
+      (map) => VerifyResponse.fromMap(map),
+    );
+  }
+
+  Future<AuthsignalResponse<T>> _invokeSmsMethod<T>(
+    String method,
+    List<JSAny> arguments,
+    T Function(Map<String, dynamic> data) parser,
+  ) async {
+    final client = _client;
+    if (client == null) {
+      return _clientNotInitializedResponse<T>();
+    }
+
+    final smsApi = _getProperty(client, 'sms');
+    if (smsApi == null) {
+      return AuthsignalResponse.withError(
+        error: 'SMS API is not available in the browser SDK. '
+            'This may indicate a version incompatibility.',
+        errorCode: 'api_unavailable',
+      );
+    }
+
+    try {
+      final jsResult = _callMethod(smsApi as JSObject, method, arguments);
+      if (jsResult == null) {
+        return AuthsignalResponse(data: null);
+      }
+      final result = await (jsResult as JSPromise).toDart;
+      return _mapResponse(result, parser);
+    } catch (error) {
+      return _responseFromJsError(error);
+    }
+  }
+
+  @override
+  Future<AuthsignalResponse<EnrollTotpResponse>> totpEnroll() {
+    return _invokeTotpMethod(
+      'enroll',
+      const [],
+      (map) => EnrollTotpResponse.fromMap(map),
+    );
+  }
+
+  @override
+  Future<AuthsignalResponse<VerifyResponse>> totpVerify(String code) {
+    if (code.trim().isEmpty) {
+      return Future.value(AuthsignalResponse.withError(
+        error: 'Verification code is required',
+        errorCode: 'invalid_input',
+      ));
+    }
+
+    return _invokeTotpMethod(
+      'verify',
+      [<String, dynamic>{'code': code}.jsify()!],
+      (map) => VerifyResponse.fromMap(map),
+    );
+  }
+
+  Future<AuthsignalResponse<T>> _invokeTotpMethod<T>(
+    String method,
+    List<JSAny> arguments,
+    T Function(Map<String, dynamic> data) parser,
+  ) async {
+    final client = _client;
+    if (client == null) {
+      return _clientNotInitializedResponse<T>();
+    }
+
+    final totpApi = _getProperty(client, 'totp');
+    if (totpApi == null) {
+      return AuthsignalResponse.withError(
+        error: 'TOTP API is not available in the browser SDK. '
+            'This may indicate a version incompatibility.',
+        errorCode: 'api_unavailable',
+      );
+    }
+
+    try {
+      final jsResult = _callMethod(totpApi as JSObject, method, arguments);
+      if (jsResult == null) {
+        return AuthsignalResponse(data: null);
+      }
+      final result = await (jsResult as JSPromise).toDart;
+      return _mapResponse(result, parser);
+    } catch (error) {
+      return _responseFromJsError(error);
+    }
+  }
+
+  @override
+  Future<AuthsignalResponse<ChallengeResponse>> whatsappChallenge() {
+    return _invokeWhatsappMethod(
+      'challenge',
+      const [],
+      (map) => ChallengeResponse.fromMap(map),
+    );
+  }
+
+  @override
+  Future<AuthsignalResponse<VerifyResponse>> whatsappVerify(String code) {
+    if (code.trim().isEmpty) {
+      return Future.value(AuthsignalResponse.withError(
+        error: 'Verification code is required',
+        errorCode: 'invalid_input',
+      ));
+    }
+
+    return _invokeWhatsappMethod(
+      'verify',
+      [<String, dynamic>{'code': code}.jsify()!],
+      (map) => VerifyResponse.fromMap(map),
+    );
+  }
+
+  Future<AuthsignalResponse<T>> _invokeWhatsappMethod<T>(
+    String method,
+    List<JSAny> arguments,
+    T Function(Map<String, dynamic> data) parser,
+  ) async {
+    final client = _client;
+    if (client == null) {
+      return _clientNotInitializedResponse<T>();
+    }
+
+    final whatsappApi = _getProperty(client, 'whatsapp');
+    if (whatsappApi == null) {
+      return AuthsignalResponse.withError(
+        error: 'WhatsApp API is not available in the browser SDK. '
+            'This may indicate a version incompatibility.',
+        errorCode: 'api_unavailable',
+      );
+    }
+
+    try {
+      final jsResult = _callMethod(whatsappApi as JSObject, method, arguments);
+      if (jsResult == null) {
+        return AuthsignalResponse(data: null);
+      }
+      final result = await (jsResult as JSPromise).toDart;
+      return _mapResponse(result, parser);
+    } catch (error) {
+      return _responseFromJsError(error);
+    }
+  }
+
   bool _isInitializedFor(String tenantId, String baseUrl) {
     return _client != null && _tenantId == tenantId && _baseUrl == baseUrl;
   }
