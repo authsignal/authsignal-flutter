@@ -1,3 +1,7 @@
+## 2.2.0
+
+- Migrate from deprecated `dart:html` and `dart:js_util` to `package:web` and `dart:js_interop` for Flutter web support.
+
 ## 2.1.0
 
 ### Flutter Web Support
