@@ -8,7 +8,6 @@ import 'package:web/web.dart' as web;
 import 'authsignal_flutter_platform.dart';
 import 'types.dart';
 
-// JS interop bindings
 @JS('Reflect.construct')
 external JSObject _jsConstruct(JSFunction target, JSArray args);
 
@@ -480,7 +479,6 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     return _hasWindowProperty('PublicKeyCredential');
   }
 
-  // JS interop helpers
   JSAny? _getWindowProperty(String name) {
     return _jsGet(web.window as JSObject, name.toJS);
   }
