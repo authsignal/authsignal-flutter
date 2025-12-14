@@ -1,0 +1,41 @@
+name: Publish Authsignal Flutter Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify package
+        run: flutter pub publish --dry-run
+
+      - name: Set up pub.dev credentials
+        run: |
+          mkdir -p $HOME/.config/dart
+          echo '${{ secrets.PUB_CREDENTIALS }}' > $HOME/.config/dart/pub-credentials.json
+
+      - name: Publish to pub.dev
+        run: flutter pub publish --force
+
+      - name: Clean up credentials
+        if: always()
+        run: rm -f $HOME/.config/dart/pub-credentials.json
