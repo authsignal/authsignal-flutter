@@ -65,6 +65,34 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
   Future<AuthsignalResponse<bool>> passkeyIsAvailable() {
     throw UnimplementedError('passkeyIsAvailable() has not been implemented.');
   }
+
+  Future<AuthsignalResponse<EnrollResponse>> smsEnroll(String phoneNumber) {
+    throw UnimplementedError('smsEnroll() has not been implemented.');
+  }
+
+  Future<AuthsignalResponse<ChallengeResponse>> smsChallenge() {
+    throw UnimplementedError('smsChallenge() has not been implemented.');
+  }
+
+  Future<AuthsignalResponse<VerifyResponse>> smsVerify(String code) {
+    throw UnimplementedError('smsVerify() has not been implemented.');
+  }
+
+  Future<AuthsignalResponse<EnrollTotpResponse>> totpEnroll() {
+    throw UnimplementedError('totpEnroll() has not been implemented.');
+  }
+
+  Future<AuthsignalResponse<VerifyResponse>> totpVerify(String code) {
+    throw UnimplementedError('totpVerify() has not been implemented.');
+  }
+
+  Future<AuthsignalResponse<ChallengeResponse>> whatsappChallenge() {
+    throw UnimplementedError('whatsappChallenge() has not been implemented.');
+  }
+
+  Future<AuthsignalResponse<VerifyResponse>> whatsappVerify(String code) {
+    throw UnimplementedError('whatsappVerify() has not been implemented.');
+  }
 }
 
 class _TokenAuthsignalFlutterPlatform extends AuthsignalFlutterPlatform {}

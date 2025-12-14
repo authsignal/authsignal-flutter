@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'authsignal_flutter_platform.dart';
 import 'types.dart';
 
 class AuthsignalSms {
@@ -13,6 +14,10 @@ class AuthsignalSms {
 
   Future<AuthsignalResponse<EnrollResponse>> enroll(String phoneNumber) async {
     await initCheck();
+
+    if (kIsWeb) {
+      return AuthsignalFlutterPlatform.instance.smsEnroll(phoneNumber);
+    }
 
     var arguments = <String, dynamic>{'phoneNumber': phoneNumber};
     try {
@@ -32,6 +37,10 @@ class AuthsignalSms {
   Future<AuthsignalResponse<ChallengeResponse>> challenge() async {
     await initCheck();
 
+    if (kIsWeb) {
+      return AuthsignalFlutterPlatform.instance.smsChallenge();
+    }
+
     try {
       final data =
           await methodChannel.invokeMapMethod<String, dynamic>('sms.challenge');
@@ -48,6 +57,10 @@ class AuthsignalSms {
 
   Future<AuthsignalResponse<VerifyResponse>> verify(String code) async {
     await initCheck();
+
+    if (kIsWeb) {
+      return AuthsignalFlutterPlatform.instance.smsVerify(code);
+    }
 
     var arguments = <String, dynamic>{'code': code};
 

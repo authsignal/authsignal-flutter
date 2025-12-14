@@ -1,3 +1,12 @@
+## 2.3.0
+
+### Flutter Web Support
+
+- Added SMS OTP support for Flutter web (`sms.enroll`, `sms.challenge`, `sms.verify`).
+- Added TOTP/Authenticator app support for Flutter web (`totp.enroll`, `totp.verify`).
+- Added WhatsApp OTP support for Flutter web (`whatsapp.challenge`, `whatsapp.verify`).
+- Updated example app with SMS OTP, TOTP, and WhatsApp sections for web.
+
 ## 2.2.0
 
 - Migrate from deprecated `dart:html` and `dart:js_util` to `package:web` and `dart:js_interop` for Flutter web support.
