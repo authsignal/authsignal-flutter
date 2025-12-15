@@ -18,7 +18,6 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.24.0"
           channel: "stable"
           cache: true
 
@@ -26,9 +25,11 @@ jobs:
         run: flutter pub get
 
       - name: Set up pub.dev credentials
+        env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
         run: |
           mkdir -p $HOME/.config/dart
-          echo '${{ secrets.PUB_CREDENTIALS }}' > $HOME/.config/dart/pub-credentials.json
+          echo "$PUB_CREDENTIALS" > $HOME/.config/dart/pub-credentials.json
 
       - name: Verify package
         run: flutter pub publish --dry-run
