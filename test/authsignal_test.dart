@@ -141,6 +141,45 @@ void main() {
               };
             }
 
+          case "inapp.createPin":
+            {
+              return <String, dynamic>{
+                'credentialId': 'pin_credential_id',
+                'createdAt': '2023-01-01T00:00:00Z',
+                'userId': 'test_user_id',
+                'lastAuthenticatedAt': null
+              };
+            }
+
+          case "inapp.verifyPin":
+            {
+              return <String, dynamic>{
+                'isVerified': true,
+                'token': 'pin_verify_token',
+                'userId': 'test_user_id',
+              };
+            }
+
+          case "inapp.deletePin":
+            {
+              return true;
+            }
+
+          case "inapp.getAllPinUsernames":
+            {
+              return <String>['alice', 'bob'];
+            }
+
+          case "getDeviceId":
+            {
+              return 'mock-device-id';
+            }
+
+          case "passkey.shouldPromptToCreatePasskey":
+            {
+              return true;
+            }
+
           default:
             {
               throw Error();
@@ -278,5 +317,53 @@ void main() {
     expect(result.data!.userId, 'test_user_id');
     expect(result.data!.userAuthenticatorId, 'test_auth_id');
     expect(result.data!.username, 'test_username');
+  });
+
+  test('inapp.createPin', () async {
+    final result = await authsignal.inapp.createPin(
+      pin: '1234',
+      username: 'alice',
+      token: 'tok',
+    );
+
+    expect(result.data!.credentialId, 'pin_credential_id');
+    expect(result.data!.userId, 'test_user_id');
+  });
+
+  test('inapp.verifyPin', () async {
+    final result = await authsignal.inapp.verifyPin(
+      pin: '1234',
+      username: 'alice',
+    );
+
+    expect(result.data!.isVerified, true);
+    expect(result.data!.token, 'pin_verify_token');
+    expect(result.data!.userId, 'test_user_id');
+  });
+
+  test('inapp.deletePin', () async {
+    final result = await authsignal.inapp.deletePin(username: 'alice');
+
+    expect(result.data, true);
+  });
+
+  test('inapp.getAllPinUsernames', () async {
+    final result = await authsignal.inapp.getAllPinUsernames();
+
+    expect(result.data, <String>['alice', 'bob']);
+  });
+
+  test('getDeviceId', () async {
+    final deviceId = await authsignal.getDeviceId();
+
+    expect(deviceId, 'mock-device-id');
+  });
+
+  test('passkey.shouldPromptToCreatePasskey', () async {
+    final result = await authsignal.passkey.shouldPromptToCreatePasskey(
+      username: 'alice',
+    );
+
+    expect(result.data, true);
   });
 }

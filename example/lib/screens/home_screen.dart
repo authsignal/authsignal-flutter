@@ -24,10 +24,25 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _emailCodeController = TextEditingController();
   final TextEditingController _smsCodeController = TextEditingController();
   final TextEditingController _totpCodeController = TextEditingController();
+  final TextEditingController _pinController = TextEditingController();
+  final TextEditingController _pinUsernameController = TextEditingController();
 
   final List<String> _outputLog = [];
   bool _isInitialized = false;
   bool _backendHealthy = false;
+
+  // Advanced credential options (In-App / QR / Push share these on native)
+  bool _requireUserAuthentication = false;
+  bool _performAttestation = false;
+  KeychainAccess? _keychainAccess;
+
+  // Passkey options
+  bool _ignorePasskeyAlreadyExistsError = false;
+
+  // In-App verify options
+  final TextEditingController _verifyActionController = TextEditingController();
+  final TextEditingController _verifyUsernameController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -35,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _userIdController.text = 'user_${DateTime.now().millisecondsSinceEpoch}';
     _emailController.text = '${_userIdController.text}@example.com';
     _phoneController.text = '+1234567890';
+    _pinUsernameController.text = _userIdController.text;
     backendService = BackendService();
     _checkBackendHealth();
     _addOutput('App started. Please configure and initialize.');
@@ -62,6 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
         token: tokenResponse.token,
         username: email.isEmpty ? null : email,
         displayName: userId.isEmpty ? null : userId,
+        ignorePasskeyAlreadyExistsError: _ignorePasskeyAlreadyExistsError,
       );
 
       if (response.error != null) {
@@ -325,7 +342,11 @@ class _HomeScreenState extends State<HomeScreen> {
               onInitialize: _initializeAuthsignal,
             ),
             const SizedBox(height: 16),
+            _buildDeviceInfoSection(),
+            const SizedBox(height: 16),
             _buildInAppAuthCard(),
+            const SizedBox(height: 16),
+            _buildPinAuthSection(),
             const SizedBox(height: 16),
             _buildPasskeySection(),
             const SizedBox(height: 16),
@@ -344,33 +365,218 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildInAppAuthCard() {
+  Widget _buildDeviceInfoSection() {
     return FeatureCard(
-      title: '🔐 In-App Verification (mobile)',
+      title: '📱 Device',
       description:
-          'Secure device-based authentication using cryptographic keys stored on this device',
+          'Cross-platform device identifier exposed by the SDK. Useful for backend trust signals.',
       actions: [
         ElevatedButton.icon(
-          onPressed: _isInitialized ? _getInAppCredential : null,
-          icon: const Icon(Icons.info, size: 18),
-          label: const Text('Get Credential'),
-        ),
-        ElevatedButton.icon(
-          onPressed: _isInitialized ? _addInAppCredential : null,
-          icon: const Icon(Icons.add_circle, size: 18),
-          label: const Text('Add Credential'),
-        ),
-        ElevatedButton.icon(
-          onPressed: _isInitialized ? _verifyInApp : null,
-          icon: const Icon(Icons.verified_user, size: 18),
-          label: const Text('Verify Device'),
-        ),
-        ElevatedButton.icon(
-          onPressed: _isInitialized ? _removeInAppCredential : null,
-          icon: const Icon(Icons.remove_circle, size: 18),
-          label: const Text('Remove'),
+          onPressed: _isInitialized ? _getDeviceId : null,
+          icon: const Icon(Icons.fingerprint, size: 18),
+          label: const Text('Get Device ID'),
         ),
       ],
+    );
+  }
+
+  Widget _buildPinAuthSection() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '🔢 PIN Authentication (mobile)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Local PIN-backed credentials. Each PIN is bound to a username on this device.',
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _pinUsernameController,
+              decoration: const InputDecoration(
+                labelText: 'PIN username',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _pinController,
+              decoration: const InputDecoration(
+                labelText: 'PIN',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.pin),
+              ),
+              obscureText: true,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _createPin : null,
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  label: const Text('Create PIN'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _verifyPin : null,
+                  icon: const Icon(Icons.check_circle, size: 18),
+                  label: const Text('Verify PIN'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _deletePin : null,
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('Delete PIN'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _listPinUsernames : null,
+                  icon: const Icon(Icons.list, size: 18),
+                  label: const Text('List PIN Users'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInAppAuthCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              '🔐 In-App Verification (mobile)',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Secure device-based authentication using cryptographic keys stored on this device.',
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _getInAppCredential : null,
+                  icon: const Icon(Icons.info, size: 18),
+                  label: const Text('Get Credential'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _addInAppCredential : null,
+                  icon: const Icon(Icons.add_circle, size: 18),
+                  label: const Text('Add Credential'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _verifyInApp : null,
+                  icon: const Icon(Icons.verified_user, size: 18),
+                  label: const Text('Verify Device'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: _isInitialized ? _removeInAppCredential : null,
+                  icon: const Icon(Icons.remove_circle, size: 18),
+                  label: const Text('Remove'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: const EdgeInsets.symmetric(vertical: 4),
+              title: const Text(
+                'Advanced credential options',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text('requireUserAuthentication'),
+                  subtitle: const Text(
+                    'iOS: gate the credential key on Touch/Face ID. Android: ignored.',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  value: _requireUserAuthentication,
+                  onChanged: (v) =>
+                      setState(() => _requireUserAuthentication = v),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text('performAttestation'),
+                  subtitle: const Text(
+                    'Apple App Attest / Play Integrity. Real device recommended.',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  value: _performAttestation,
+                  onChanged: (v) => setState(() => _performAttestation = v),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'keychainAccess (iOS)',
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<KeychainAccess?>(
+                        isDense: true,
+                        isExpanded: true,
+                        value: _keychainAccess,
+                        items: <DropdownMenuItem<KeychainAccess?>>[
+                          const DropdownMenuItem<KeychainAccess?>(
+                            value: null,
+                            child: Text('default (whenUnlockedThisDeviceOnly)'),
+                          ),
+                          ...KeychainAccess.values.map(
+                            (v) => DropdownMenuItem<KeychainAccess?>(
+                              value: v,
+                              child: Text(v.value),
+                            ),
+                          ),
+                        ],
+                        onChanged: (v) => setState(() => _keychainAccess = v),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _verifyActionController,
+                  decoration: const InputDecoration(
+                    labelText: 'verify(action) — optional',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _verifyUsernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'verify(username) — optional',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -405,9 +611,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: const Icon(Icons.login, size: 18),
                   label: const Text('Sign In with Passkey'),
                 ),
+                ElevatedButton.icon(
+                  onPressed:
+                      _isInitialized ? _checkShouldPromptToCreatePasskey : null,
+                  icon: const Icon(Icons.help_outline, size: 18),
+                  label: const Text('Should Prompt?'),
+                ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+              title: const Text('ignorePasskeyAlreadyExistsError'),
+              subtitle: const Text(
+                'Suppresses the "passkey already exists" error on signUp.',
+                style: TextStyle(fontSize: 11),
+              ),
+              value: _ignorePasskeyAlreadyExistsError,
+              onChanged: (v) =>
+                  setState(() => _ignorePasskeyAlreadyExistsError = v),
+            ),
+            const SizedBox(height: 4),
             Text(
               'Requires a short-lived token from the backend (/api/registration-token) '
               'and can be used on both mobile and Flutter web.',
@@ -668,8 +893,14 @@ class _HomeScreenState extends State<HomeScreen> {
       await authsignal.setToken(tokenResponse.token);
 
       _addOutput('🔐 Registering this device as trusted...');
-      final result =
-          await authsignal.inapp.addCredential(token: tokenResponse.token);
+      _addOutput(
+          '   options: requireUserAuth=$_requireUserAuthentication, performAttestation=$_performAttestation, keychainAccess=${_keychainAccess?.value ?? "default"}');
+      final result = await authsignal.inapp.addCredential(
+        token: tokenResponse.token,
+        requireUserAuthentication: _requireUserAuthentication,
+        performAttestation: _performAttestation,
+        keychainAccess: _keychainAccess,
+      );
 
       if (result.data != null) {
         _addOutput('✅ Trusted device credential added!');
@@ -700,8 +931,14 @@ class _HomeScreenState extends State<HomeScreen> {
       _addOutput('✅ Challenge token received (${tokenResponse.state})');
       await authsignal.setToken(tokenResponse.token);
 
-      _addOutput('🔐 Verifying this trusted device...');
-      final result = await authsignal.inapp.verify();
+      final action = _verifyActionController.text.trim();
+      final username = _verifyUsernameController.text.trim();
+      _addOutput(
+          '🔐 Verifying this trusted device${action.isEmpty ? '' : ' (action: $action)'}${username.isEmpty ? '' : ' (username: $username)'}...');
+      final result = await authsignal.inapp.verify(
+        action: action.isEmpty ? null : action,
+        username: username.isEmpty ? null : username,
+      );
 
       if (result.data != null) {
         _addOutput('✅ Device verification successful!');
@@ -982,6 +1219,176 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  // Device & passkey diagnostics
+
+  Future<void> _getDeviceId() async {
+    try {
+      _addOutput('📱 Fetching device ID...');
+      final deviceId = await authsignal.getDeviceId();
+
+      if (deviceId != null && deviceId.isNotEmpty) {
+        _addOutput('✅ Device ID: $deviceId');
+      } else {
+        _addOutput('ℹ️ No device ID returned (web may not expose one).');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _checkShouldPromptToCreatePasskey() async {
+    try {
+      _addOutput('🔍 Checking shouldPromptToCreatePasskey...');
+      final username = _emailController.text.trim();
+      final response = await authsignal.passkey.shouldPromptToCreatePasskey(
+        username: username.isEmpty ? null : username,
+      );
+
+      if (response.error != null) {
+        _addOutput('❌ Error: ${response.error}');
+        return;
+      }
+
+      _addOutput(response.data == true
+          ? '✅ Recommend prompting the user to create a passkey.'
+          : 'ℹ️ Passkey already exists or device not eligible — skip prompt.');
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  // PIN Methods
+
+  Future<void> _createPin() async {
+    final pin = _pinController.text.trim();
+    final username = _pinUsernameController.text.trim();
+
+    if (pin.isEmpty || username.isEmpty) {
+      _addOutput('⚠️ Enter both a PIN and a username.');
+      return;
+    }
+
+    try {
+      _addOutput('📝 Requesting registration token from backend...');
+      final tokenResponse = await backendService.getRegistrationToken(
+        _userIdController.text,
+      );
+
+      if (tokenResponse == null) {
+        _addOutput('❌ Failed to get registration token');
+        return;
+      }
+
+      _addOutput('✅ Token received (${tokenResponse.state})');
+      await authsignal.setToken(tokenResponse.token);
+
+      _addOutput('🔐 Creating PIN credential for "$username"...');
+      final result = await authsignal.inapp.createPin(
+        pin: pin,
+        username: username,
+        token: tokenResponse.token,
+      );
+
+      if (result.error != null) {
+        _addOutput('❌ Failed to create PIN: ${result.error}');
+        return;
+      }
+
+      if (result.data != null) {
+        _addOutput('✅ PIN credential created!');
+        _addOutput('   Credential ID: ${result.data!.credentialId}');
+        _addOutput('   User ID: ${result.data!.userId}');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _verifyPin() async {
+    final pin = _pinController.text.trim();
+    final username = _pinUsernameController.text.trim();
+
+    if (pin.isEmpty || username.isEmpty) {
+      _addOutput('⚠️ Enter both a PIN and a username.');
+      return;
+    }
+
+    try {
+      _addOutput('🔍 Verifying PIN for "$username"...');
+      final result = await authsignal.inapp.verifyPin(
+        pin: pin,
+        username: username,
+      );
+
+      if (result.error != null) {
+        _addOutput('❌ PIN verify failed: ${result.error}');
+        return;
+      }
+
+      if (result.data?.isVerified == true) {
+        _addOutput('✅ PIN verified!');
+        if (result.data?.token != null) {
+          _addOutput('   Token: ${result.data!.token!.substring(0, 20)}...');
+        }
+        if (result.data?.userId != null) {
+          _addOutput('   User: ${result.data!.userId}');
+        }
+      } else {
+        _addOutput('❌ PIN incorrect.');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _deletePin() async {
+    final username = _pinUsernameController.text.trim();
+    if (username.isEmpty) {
+      _addOutput('⚠️ Enter a username to delete its PIN.');
+      return;
+    }
+
+    try {
+      _addOutput('🗑️ Deleting PIN for "$username"...');
+      final result = await authsignal.inapp.deletePin(username: username);
+
+      if (result.error != null) {
+        _addOutput('❌ Delete failed: ${result.error}');
+        return;
+      }
+
+      _addOutput(result.data == true
+          ? '✅ PIN deleted for "$username".'
+          : 'ℹ️ No PIN existed for "$username".');
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _listPinUsernames() async {
+    try {
+      _addOutput('📋 Listing PIN usernames stored on device...');
+      final result = await authsignal.inapp.getAllPinUsernames();
+
+      if (result.error != null) {
+        _addOutput('❌ Failed: ${result.error}');
+        return;
+      }
+
+      final usernames = result.data ?? const <String>[];
+      if (usernames.isEmpty) {
+        _addOutput('ℹ️ No PIN credentials on this device.');
+      } else {
+        _addOutput('✅ Found ${usernames.length} PIN credential(s):');
+        for (final u in usernames) {
+          _addOutput('   • $u');
+        }
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
   @override
   void dispose() {
     _userIdController.dispose();
@@ -991,6 +1398,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _emailCodeController.dispose();
     _smsCodeController.dispose();
     _totpCodeController.dispose();
+    _pinController.dispose();
+    _pinUsernameController.dispose();
+    _verifyActionController.dispose();
+    _verifyUsernameController.dispose();
     super.dispose();
   }
 }

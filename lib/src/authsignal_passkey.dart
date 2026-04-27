@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 
 import 'authsignal_flutter_platform.dart';
@@ -15,6 +17,7 @@ class AuthsignalPasskey {
     String? username,
     String? displayName,
     bool useAutoRegister = false,
+    bool ignorePasskeyAlreadyExistsError = false,
   }) async {
     await initCheck();
 
@@ -23,6 +26,7 @@ class AuthsignalPasskey {
       username: username,
       displayName: displayName,
       useAutoRegister: useAutoRegister,
+      ignorePasskeyAlreadyExistsError: ignorePasskeyAlreadyExistsError,
     );
   }
 
@@ -58,9 +62,33 @@ class AuthsignalPasskey {
 
   Future<void> cancel() async {
     await initCheck();
+    _autofillRequestPending = false;
     await AuthsignalFlutterPlatform.instance.passkeyCancel();
   }
 
+  bool isSupported() {
+    if (kIsWeb) {
+      return true;
+    }
+    if (Platform.isAndroid) {
+      return true;
+    }
+    if (Platform.isIOS) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<AuthsignalResponse<bool>> shouldPromptToCreatePasskey({
+    String? username,
+  }) async {
+    await initCheck();
+    return AuthsignalFlutterPlatform.instance
+        .passkeyShouldPromptToCreatePasskey(username: username);
+  }
+
+  @Deprecated(
+      "Use 'preferImmediatelyAvailableCredentials' to control what happens when a passkey isn't available, or use 'shouldPromptToCreatePasskey' to check if you should prompt the user to create a passkey.")
   Future<AuthsignalResponse<bool>> isAvailableOnDevice() async {
     await initCheck();
     return AuthsignalFlutterPlatform.instance.passkeyIsAvailable();

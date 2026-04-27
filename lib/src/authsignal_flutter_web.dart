@@ -44,8 +44,11 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
   Future<void>? _scriptLoader;
 
   @override
-  Future<void> initialize(
-      {required String tenantId, required String baseUrl}) async {
+  Future<void> initialize({
+    required String tenantId,
+    required String baseUrl,
+    String? deviceId,
+  }) async {
     if (_isInitializedFor(tenantId, baseUrl)) {
       return;
     }
@@ -150,6 +153,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     String? username,
     String? displayName,
     bool useAutoRegister = false,
+    bool ignorePasskeyAlreadyExistsError = false,
   }) {
     final client = _client;
     if (client == null) {
@@ -225,6 +229,36 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     try {
       _callMethod(passkeyApi, 'cancel', const []);
     } catch (_) {}
+  }
+
+  @override
+  Future<String?> getDeviceId() async {
+    final client = _client;
+    if (client == null) {
+      return null;
+    }
+
+    if (_hasProperty(client, 'getDeviceId')) {
+      try {
+        final jsResult = _callMethod(client, 'getDeviceId', const []);
+        if (jsResult != null) {
+          final result = await (jsResult as JSPromise).toDart;
+          final dartResult = result?.dartify();
+          if (dartResult is String) {
+            return dartResult;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return null;
+  }
+
+  @override
+  Future<AuthsignalResponse<bool>> passkeyShouldPromptToCreatePasskey({
+    String? username,
+  }) {
+    return passkeyIsAvailable();
   }
 
   @override

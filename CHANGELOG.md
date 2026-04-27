@@ -1,3 +1,18 @@
+## 2.4.0
+
+### New Features
+
+- Added `Authsignal.getDeviceId()` and a `deviceID` constructor parameter for cross-platform device identifiers.
+- Added `passkey.shouldPromptToCreatePasskey({username})` and a synchronous `passkey.isSupported()` helper.
+- Added `passkey.signUp(ignorePasskeyAlreadyExistsError: ...)` to suppress the "passkey already exists" error.
+- Expanded `push.addCredential`, `qr.addCredential`, and `inapp.addCredential` with `requireUserAuthentication`, `keychainAccess`, and `performAttestation` parameters (iOS honors all three; Android honors `performAttestation`).
+- Added `username` parameter to `inapp.getCredential`, `inapp.addCredential`, `inapp.removeCredential`, and `inapp.verify`.
+- Added `action` parameter to `inapp.verify`.
+- Added PIN authentication suite: `inapp.createPin`, `inapp.verifyPin`, `inapp.deletePin`, `inapp.getAllPinUsernames`.
+- Added `KeychainAccess` enum and `VerifyPinResponse` type.
+- `ClaimChallengeResponse` now includes `actionCode` and `idempotencyKey`.
+
+
 ## 2.3.0
 
 ### Flutter Web Support

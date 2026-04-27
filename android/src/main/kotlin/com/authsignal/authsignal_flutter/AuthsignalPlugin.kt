@@ -2,6 +2,7 @@ package com.authsignal.authsignal_flutter
 
 import android.app.Activity
 import android.content.Context
+import com.authsignal.DeviceCache
 import com.authsignal.TokenCache
 import com.authsignal.email.AuthsignalEmail
 import com.authsignal.inapp.AuthsignalInApp
@@ -44,6 +45,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
     channel.setMethodCallHandler(this)
 
     context = binding.applicationContext
+    DeviceCache.shared.initialize(binding.applicationContext)
   }
 
   override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -51,9 +53,14 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "initialize" -> {
         val tenantID = call.argument<String>("tenantID")!!
         val baseURL = call.argument<String>("baseURL")!!
+        val deviceID = call.argument<String>("deviceID")
+
+        context?.let {
+          DeviceCache.shared.initialize(it, deviceID)
+        }
 
         activity?.let {
-          passkey = AuthsignalPasskey(tenantID, baseURL, it)
+          passkey = AuthsignalPasskey(tenantID, baseURL, it, deviceID)
         }
 
         push = AuthsignalPush(tenantID, baseURL)
@@ -62,18 +69,32 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         totp = AuthsignalTOTP(tenantID, baseURL)
         whatsapp = AuthsignalWhatsApp(tenantID, baseURL)
         qr = AuthsignalQRCode(tenantID, baseURL)
-        inapp = AuthsignalInApp(tenantID, baseURL)
+        inapp = AuthsignalInApp(tenantID, baseURL, context = context)
 
         result.success(null)
+      }
+
+      "getDeviceId" -> {
+        coroutineScope.launch {
+          val deviceId = DeviceCache.shared.getDefaultDeviceId()
+          result.success(deviceId)
+        }
       }
 
       "passkey.signUp" -> {
         val token = call.argument<String>("token")
         val username = call.argument<String>("username")
         val displayName = call.argument<String>("displayName")
+        val ignorePasskeyAlreadyExistsError =
+          call.argument<Boolean>("ignorePasskeyAlreadyExistsError") ?: false
 
         coroutineScope.launch {
-          val response = passkey.signUp(token, username, displayName)
+          val response = passkey.signUp(
+            token = token,
+            username = username,
+            displayName = displayName,
+            ignorePasskeyAlreadyExistsError = ignorePasskeyAlreadyExistsError,
+          )
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -88,9 +109,15 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "passkey.signIn" -> {
         val action = call.argument<String>("action")
         val token = call.argument<String>("token")
+        val preferImmediatelyAvailableCredentials =
+          call.argument<Boolean>("preferImmediatelyAvailableCredentials") ?: true
 
         coroutineScope.launch {
-          val response = passkey.signIn(action, token)
+          val response = passkey.signIn(
+            action = action,
+            token = token,
+            preferImmediatelyAvailableCredentials = preferImmediatelyAvailableCredentials,
+          )
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -104,6 +131,20 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
             result.success(data)
           }
+        }
+      }
+
+      "passkey.cancel" -> {
+        result.success(null)
+      }
+
+      "passkey.shouldPromptToCreatePasskey" -> {
+        val username = call.argument<String>("username")
+
+        coroutineScope.launch {
+          val response = passkey.shouldPromptToCreatePasskey(username)
+
+          result.success(response.data ?: false)
         }
       }
 
@@ -136,9 +177,13 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
       "push.addCredential" -> {
         val token = call.argument<String>("token")
+        val performAttestation = call.argument<Boolean>("performAttestation") ?: false
 
         coroutineScope.launch {
-          val response = push.addCredential(token)
+          val response = push.addCredential(
+            token = token,
+            performAttestation = performAttestation,
+          )
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -377,9 +422,13 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
       "qr.addCredential" -> {
         val token = call.argument<String>("token")
+        val performAttestation = call.argument<Boolean>("performAttestation") ?: false
 
         coroutineScope.launch {
-          val response = qr.addCredential(token)
+          val response = qr.addCredential(
+            token = token,
+            performAttestation = performAttestation,
+          )
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -414,7 +463,9 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
             val data = mapOf<String, Any?>(
               "success" to it.success,
               "userAgent" to it.userAgent,
-              "ipAddress" to it.ipAddress
+              "ipAddress" to it.ipAddress,
+              "actionCode" to it.actionCode,
+              "idempotencyKey" to it.idempotencyKey,
             )
 
             result.success(data)
@@ -437,8 +488,10 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "inapp.getCredential" -> {
+        val username = call.argument<String>("username")
+
         coroutineScope.launch {
-          val response = inapp.getCredential()
+          val response = inapp.getCredential(username = username)
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -455,9 +508,15 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
       "inapp.addCredential" -> {
         val token = call.argument<String>("token")
+        val username = call.argument<String>("username")
+        val performAttestation = call.argument<Boolean>("performAttestation") ?: false
 
         coroutineScope.launch {
-          val response = inapp.addCredential(token)
+          val response = inapp.addCredential(
+            token = token,
+            username = username,
+            performAttestation = performAttestation,
+          )
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -473,8 +532,10 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "inapp.removeCredential" -> {
+        val username = call.argument<String>("username")
+
         coroutineScope.launch {
-          val response = inapp.removeCredential()
+          val response = inapp.removeCredential(username = username)
 
           handleResponse(response, result)?.let {
             result.success(it)
@@ -483,8 +544,11 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "inapp.verify" -> {
+        val action = call.argument<String>("action")
+        val username = call.argument<String>("username")
+
         coroutineScope.launch {
-          val response = inapp.verify()
+          val response = inapp.verify(action = action, username = username)
 
           handleResponse(response, result)?.let {
             val data = mapOf<String, Any?>(
@@ -496,6 +560,69 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
             result.success(data)
           }
+        }
+      }
+
+      "inapp.createPin" -> {
+        val pin = call.argument<String>("pin")!!
+        val username = call.argument<String>("username")!!
+        val token = call.argument<String>("token")
+
+        coroutineScope.launch {
+          val response = inapp.createPin(pin = pin, username = username, token = token)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "credentialId" to it.credentialId,
+              "createdAt" to it.createdAt,
+              "userId" to it.userId,
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "inapp.verifyPin" -> {
+        val pin = call.argument<String>("pin")!!
+        val username = call.argument<String>("username")!!
+        val action = call.argument<String>("action")
+
+        coroutineScope.launch {
+          val response = inapp.verifyPin(pin = pin, username = username, action = action)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf<String, Any?>(
+              "isVerified" to it.isVerified,
+              "token" to it.token,
+              "userId" to it.userId,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
+      "inapp.deletePin" -> {
+        val username = call.argument<String>("username")!!
+
+        coroutineScope.launch {
+          val response = inapp.deletePin(username = username)
+
+          handleResponse(response, result)?.let {
+            result.success(it)
+          }
+        }
+      }
+
+      "inapp.getAllPinUsernames" -> {
+        val response = inapp.getAllPinUsernames()
+
+        if (response.error != null) {
+          result.error(response.errorCode ?: "unexpected_error", response.error!!, "")
+        } else {
+          result.success(response.data ?: emptyList<String>())
         }
       }
 

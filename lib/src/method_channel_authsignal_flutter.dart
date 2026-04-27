@@ -14,16 +14,23 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
   Future<void> initialize({
     required String tenantId,
     required String baseUrl,
+    String? deviceId,
   }) async {
     await methodChannel.invokeMethod<void>('initialize', {
       'tenantID': tenantId,
       'baseURL': baseUrl,
+      'deviceID': deviceId,
     });
   }
 
   @override
   Future<void> setToken(String token) async {
     await methodChannel.invokeMethod<void>('setToken', {'token': token});
+  }
+
+  @override
+  Future<String?> getDeviceId() async {
+    return methodChannel.invokeMethod<String>('getDeviceId');
   }
 
   @override
@@ -85,11 +92,13 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
     String? username,
     String? displayName,
     bool useAutoRegister = false,
+    bool ignorePasskeyAlreadyExistsError = false,
   }) async {
     final arguments = <String, dynamic>{
       'token': token,
       'username': username,
       'displayName': displayName,
+      'ignorePasskeyAlreadyExistsError': ignorePasskeyAlreadyExistsError,
     };
     if (useAutoRegister) {
       arguments['useAutoRegister'] = useAutoRegister;
@@ -156,6 +165,21 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
       final isAvailable =
           await methodChannel.invokeMethod<bool>('passkey.isAvailableOnDevice');
       return AuthsignalResponse(data: isAvailable);
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
+    }
+  }
+
+  @override
+  Future<AuthsignalResponse<bool>> passkeyShouldPromptToCreatePasskey({
+    String? username,
+  }) async {
+    try {
+      final result = await methodChannel.invokeMethod<bool>(
+        'passkey.shouldPromptToCreatePasskey',
+        {'username': username},
+      );
+      return AuthsignalResponse(data: result ?? false);
     } on PlatformException catch (ex) {
       return AuthsignalResponse.fromError(ex);
     }
