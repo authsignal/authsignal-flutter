@@ -44,8 +44,8 @@ class AuthsignalQr {
     };
 
     try {
-      final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('qr.addCredential', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'qr.addCredential', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: AppCredential.fromMap(data));
@@ -81,8 +81,8 @@ class AuthsignalQr {
     var arguments = <String, dynamic>{'challengeId': challengeId};
 
     try {
-      final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('qr.claimChallenge', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'qr.claimChallenge', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: ClaimChallengeResponse.fromMap(data));
@@ -122,4 +122,3 @@ class AuthsignalQr {
     }
   }
 }
-

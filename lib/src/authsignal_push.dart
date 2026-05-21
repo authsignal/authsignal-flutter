@@ -44,8 +44,8 @@ class AuthsignalPush {
     };
 
     try {
-      final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('push.addCredential', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'push.addCredential', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: AppCredential.fromMap(data));

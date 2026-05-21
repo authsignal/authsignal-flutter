@@ -155,8 +155,7 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
   Future<void> passkeyCancel() async {
     try {
       await methodChannel.invokeMethod<void>('passkey.cancel');
-    } on PlatformException catch (_) {
-    }
+    } on PlatformException catch (_) {}
   }
 
   @override
@@ -167,6 +166,17 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
       return AuthsignalResponse(data: isAvailable);
     } on PlatformException catch (ex) {
       return AuthsignalResponse.fromError(ex);
+    }
+  }
+
+  @override
+  Future<bool> passkeyIsSupported() async {
+    try {
+      final isSupported =
+          await methodChannel.invokeMethod<bool>('passkey.isSupported');
+      return isSupported ?? false;
+    } on PlatformException catch (_) {
+      return false;
     }
   }
 

@@ -22,7 +22,8 @@ enum ErrorCode {
   noCredential('no_credential'),
   tokenNotSet('token_not_set'),
   tokenRequired('token_required'),
-  tokenInvalid('token_invalid');
+  tokenInvalid('token_invalid'),
+  invalidCredential('invalid_credential');
 
   const ErrorCode(this.value);
 
@@ -286,4 +287,3 @@ class InAppVerifyResponse {
     );
   }
 }
-

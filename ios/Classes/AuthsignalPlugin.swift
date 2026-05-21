@@ -11,6 +11,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var whatsapp: AuthsignalWhatsApp?
   var qr: AuthsignalQRCode?
   var inapp: AuthsignalInApp?
+  var customDeviceID: String?
 
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "authsignal", binaryMessenger: registrar.messenger())
@@ -28,6 +29,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let baseURL = arguments["baseURL"] as! String
       let deviceID = arguments["deviceID"] as? String
 
+      self.customDeviceID = deviceID
       self.passkey = AuthsignalPasskey(tenantID: tenantID, baseURL: baseURL, deviceID: deviceID)
       self.push = AuthsignalPush(tenantID: tenantID, baseURL: baseURL)
       self.email = AuthsignalEmail(tenantID: tenantID, baseURL: baseURL)
@@ -40,9 +42,13 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       result(nil)
 
     case "getDeviceId":
-      Task.init {
-        let deviceId = await DeviceCache.shared.getDefaultDeviceID()
-        result(deviceId)
+      if let customDeviceID = self.customDeviceID {
+        result(customDeviceID)
+      } else {
+        Task.init {
+          let deviceId = await DeviceCache.shared.getDefaultDeviceID()
+          result(deviceId)
+        }
       }
 
     case "passkey.signUp":
@@ -135,6 +141,9 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           result(response.data)
         }
       }
+
+    case "passkey.isSupported":
+      result(self.passkey?.isSupported() ?? false)
 
     case "push.getCredential":
       Task.init {

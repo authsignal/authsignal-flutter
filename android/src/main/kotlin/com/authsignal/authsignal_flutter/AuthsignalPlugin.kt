@@ -63,12 +63,12 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
           passkey = AuthsignalPasskey(tenantID, baseURL, it, deviceID)
         }
 
-        push = AuthsignalPush(tenantID, baseURL)
+        push = AuthsignalPush(tenantID, baseURL, context = context)
         email = AuthsignalEmail(tenantID, baseURL)
         sms = AuthsignalSMS(tenantID, baseURL)
         totp = AuthsignalTOTP(tenantID, baseURL)
         whatsapp = AuthsignalWhatsApp(tenantID, baseURL)
-        qr = AuthsignalQRCode(tenantID, baseURL)
+        qr = AuthsignalQRCode(tenantID, baseURL, context = context)
         inapp = AuthsignalInApp(tenantID, baseURL, context = context)
 
         result.success(null)
@@ -156,6 +156,10 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
             result.success(response.data)
           }
         }
+      }
+
+      "passkey.isSupported" -> {
+        result.success(if (::passkey.isInitialized) passkey.isSupported() else false)
       }
 
       "push.getCredential" -> {

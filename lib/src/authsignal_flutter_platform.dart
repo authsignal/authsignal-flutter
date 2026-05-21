@@ -75,6 +75,10 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
     throw UnimplementedError('passkeyIsAvailable() has not been implemented.');
   }
 
+  Future<bool> passkeyIsSupported() {
+    throw UnimplementedError('passkeyIsSupported() has not been implemented.');
+  }
+
   Future<AuthsignalResponse<bool>> passkeyShouldPromptToCreatePasskey({
     String? username,
   }) {

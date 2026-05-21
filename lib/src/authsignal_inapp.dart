@@ -50,8 +50,8 @@ class AuthsignalInApp {
     };
 
     try {
-      final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('inapp.addCredential', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'inapp.addCredential', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: AppCredential.fromMap(data));

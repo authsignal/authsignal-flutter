@@ -180,6 +180,11 @@ void main() {
               return true;
             }
 
+          case "passkey.isSupported":
+            {
+              return true;
+            }
+
           default:
             {
               throw Error();
@@ -365,5 +370,11 @@ void main() {
     );
 
     expect(result.data, true);
+  });
+
+  test('passkey.isSupported', () async {
+    final result = await authsignal.passkey.isSupported();
+
+    expect(result, true);
   });
 }

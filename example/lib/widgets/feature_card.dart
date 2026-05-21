@@ -53,4 +53,3 @@ class FeatureCard extends StatelessWidget {
     );
   }
 }
-

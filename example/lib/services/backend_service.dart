@@ -5,7 +5,8 @@ import '../config.dart';
 class BackendService {
   final String baseUrl;
 
-  BackendService({String? baseUrl}) : baseUrl = baseUrl ?? AuthsignalConfig.backendUrl;
+  BackendService({String? baseUrl})
+      : baseUrl = baseUrl ?? AuthsignalConfig.backendUrl;
 
   Future<TokenResponse?> getRegistrationToken(String userId) async {
     try {
@@ -142,4 +143,3 @@ class ValidationResponse {
     this.userId,
   });
 }
-

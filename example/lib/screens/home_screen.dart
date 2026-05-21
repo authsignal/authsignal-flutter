@@ -1076,7 +1076,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _addOutput('   Token: ${response.data!.token!.substring(0, 20)}...');
         }
       } else {
-        _addOutput('⚠️ Verification response received but not marked verified.');
+        _addOutput(
+            '⚠️ Verification response received but not marked verified.');
         if (response.data?.failureReason != null) {
           _addOutput('   Reason: ${response.data!.failureReason}');
         }
@@ -1179,7 +1180,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _addOutput('   Authenticator ID: ${data.userAuthenticatorId}');
         _addOutput('   Secret: ${data.secret}');
         _addOutput('   URI: ${data.uri}');
-        _addOutput('   Scan the QR code or enter the secret in your authenticator app.');
+        _addOutput(
+            '   Scan the QR code or enter the secret in your authenticator app.');
       }
     } catch (e) {
       _addOutput('❌ Error: $e');
@@ -1209,7 +1211,8 @@ class _HomeScreenState extends State<HomeScreen> {
         }
         _addOutput('🎉 Authentication completed!');
       } else {
-        _addOutput('⚠️ Verification response received but not marked verified.');
+        _addOutput(
+            '⚠️ Verification response received but not marked verified.');
         if (response.data?.failureReason != null) {
           _addOutput('   Reason: ${response.data!.failureReason}');
         }

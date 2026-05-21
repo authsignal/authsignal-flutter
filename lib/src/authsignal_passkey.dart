@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:flutter/foundation.dart';
 
 import 'authsignal_flutter_platform.dart';
@@ -66,17 +64,9 @@ class AuthsignalPasskey {
     await AuthsignalFlutterPlatform.instance.passkeyCancel();
   }
 
-  bool isSupported() {
-    if (kIsWeb) {
-      return true;
-    }
-    if (Platform.isAndroid) {
-      return true;
-    }
-    if (Platform.isIOS) {
-      return true;
-    }
-    return false;
+  Future<bool> isSupported() async {
+    await initCheck();
+    return AuthsignalFlutterPlatform.instance.passkeyIsSupported();
   }
 
   Future<AuthsignalResponse<bool>> shouldPromptToCreatePasskey({

@@ -29,16 +29,21 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
   static const String _scriptElementId = 'authsignal-browser-sdk';
 
-  static const String _browserSdkVersion = 'latest';
+  static const String _browserSdkVersion = '1.16.0';
   static const String _browserModuleUrl =
       'https://cdn.jsdelivr.net/npm/@authsignal/browser@$_browserSdkVersion/+esm';
 
   static const int _scriptLoadTimeoutMs = 10000;
   static const int _scriptLoadCheckIntervalMs = 100;
 
+  static const String _deviceIdStorageKey = '@as_device_id';
+  static const String _passkeyCredentialIdStorageKey =
+      '@as_passkey_credential_id';
+
   JSObject? _client;
   String? _tenantId;
   String? _baseUrl;
+  String? _customDeviceId;
   String? _pendingToken;
   String? _sessionToken;
   Future<void>? _scriptLoader;
@@ -71,12 +76,14 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     final options = <String, dynamic>{
       'tenantId': tenantId,
       'baseUrl': baseUrl,
+      if (deviceId != null) 'deviceId': deviceId,
     }.jsify()!;
 
     try {
       _client = _jsConstruct(constructor as JSFunction, [options].toJS);
       _tenantId = tenantId;
       _baseUrl = baseUrl;
+      _customDeviceId = deviceId;
 
       final pendingToken = _pendingToken;
       if (pendingToken != null) {
@@ -117,7 +124,9 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeEmailMethod(
       'enroll',
-      [<String, dynamic>{'email': email}.jsify()!],
+      [
+        <String, dynamic>{'email': email}.jsify()!
+      ],
       (map) => EnrollResponse.fromMap(map),
     );
   }
@@ -142,7 +151,9 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeEmailMethod(
       'verify',
-      [<String, dynamic>{'code': code}.jsify()!],
+      [
+        <String, dynamic>{'code': code}.jsify()!
+      ],
       (map) => VerifyResponse.fromMap(map),
     );
   }
@@ -183,7 +194,23 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       'signUp',
       payload,
       (map) => SignUpResponse.fromMap(map),
+      onData: (map) => _storePasskeyCredentialIdFromData(map, username),
+      onErrorHandler: ignorePasskeyAlreadyExistsError
+          ? _ignoreAlreadyExistsErrorHandler<SignUpResponse>
+          : null,
     );
+  }
+
+  static AuthsignalResponse<T>? _ignoreAlreadyExistsErrorHandler<T>(
+    String? errorName,
+    String? errorCode,
+  ) {
+    if (errorName == 'InvalidStateError' ||
+        errorCode == 'matched_excluded_credential' ||
+        errorCode == 'InvalidStateError') {
+      return AuthsignalResponse<T>(data: null);
+    }
+    return null;
   }
 
   @override
@@ -211,6 +238,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       'signIn',
       payload,
       (map) => SignInResponse.fromMap(map),
+      onData: _storeVerifiedPasskeyCredentialIdFromData,
     );
   }
 
@@ -233,32 +261,151 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
   @override
   Future<String?> getDeviceId() async {
-    final client = _client;
-    if (client == null) {
-      return null;
+    if (_customDeviceId != null) {
+      return _customDeviceId;
     }
 
-    if (_hasProperty(client, 'getDeviceId')) {
+    final client = _client;
+    if (client != null && _hasProperty(client, 'getDeviceId')) {
       try {
         final jsResult = _callMethod(client, 'getDeviceId', const []);
         if (jsResult != null) {
           final result = await (jsResult as JSPromise).toDart;
           final dartResult = result?.dartify();
-          if (dartResult is String) {
+          if (dartResult is String && dartResult.isNotEmpty) {
             return dartResult;
           }
         }
       } catch (_) {}
     }
 
-    return null;
+    final storage = web.window.localStorage;
+    final existing = storage.getItem(_deviceIdStorageKey);
+    if (existing != null && existing.isNotEmpty) {
+      return existing;
+    }
+
+    final generated = _generateUuid();
+    storage.setItem(_deviceIdStorageKey, generated);
+    return generated;
+  }
+
+  String _generateUuid() {
+    final crypto = _getWindowProperty('crypto') as JSObject?;
+    if (crypto != null && _hasProperty(crypto, 'randomUUID')) {
+      try {
+        final value = _callMethod(crypto, 'randomUUID', const []);
+        final dartValue = value?.dartify();
+        if (dartValue is String && dartValue.isNotEmpty) {
+          return dartValue;
+        }
+      } catch (_) {}
+    }
+
+    final rand = DateTime.now().microsecondsSinceEpoch.toRadixString(16);
+    return 'as-$rand-${identityHashCode(this).toRadixString(16)}';
   }
 
   @override
   Future<AuthsignalResponse<bool>> passkeyShouldPromptToCreatePasskey({
     String? username,
-  }) {
-    return passkeyIsAvailable();
+  }) async {
+    final client = _client;
+    if (client == null) {
+      return AuthsignalResponse(data: false);
+    }
+
+    final passkeyApi = _getProperty(client, 'passkey') as JSObject?;
+    if (passkeyApi != null &&
+        _hasProperty(passkeyApi, 'shouldPromptToCreatePasskey')) {
+      try {
+        final payload = <String, dynamic>{
+          if (username != null) 'username': username,
+        };
+        final args = payload.isEmpty ? <JSAny>[] : <JSAny>[payload.jsify()!];
+        final jsResult =
+            _callMethod(passkeyApi, 'shouldPromptToCreatePasskey', args);
+        if (jsResult != null) {
+          final result = await (jsResult as JSPromise).toDart;
+          final dartResult = result?.dartify();
+          if (dartResult is bool) {
+            return AuthsignalResponse(data: dartResult);
+          }
+          if (dartResult is Map) {
+            final map = _toStringKeyedMap(dartResult);
+            if (map['data'] is bool) {
+              return AuthsignalResponse(data: map['data'] as bool);
+            }
+          }
+        }
+      } catch (error) {
+        return _responseFromJsError(error);
+      }
+    }
+
+    if (!_isWebAuthnAvailable()) {
+      return AuthsignalResponse(data: false);
+    }
+
+    final credentialId = _getStoredPasskeyCredentialId(username);
+    if (credentialId == null) {
+      return AuthsignalResponse(data: true);
+    }
+
+    if (passkeyApi == null) {
+      return AuthsignalResponse(data: false);
+    }
+
+    final api = _getProperty(passkeyApi, 'api') as JSObject?;
+    if (api == null || !_hasProperty(api, 'getPasskeyAuthenticator')) {
+      return AuthsignalResponse(data: false);
+    }
+
+    try {
+      final jsResult = _callMethod(
+        api,
+        'getPasskeyAuthenticator',
+        [
+          <String, dynamic>{
+            'credentialIds': [credentialId],
+          }.jsify()!,
+        ],
+      );
+      if (jsResult == null) {
+        return AuthsignalResponse(data: false);
+      }
+
+      final result = await (jsResult as JSPromise).toDart;
+      final dartResult = result?.dartify();
+      if (dartResult is Map) {
+        final map = _toStringKeyedMap(dartResult);
+        final errorCodeValue = map['errorCode'];
+        final errorValue = map['errorDescription'] ?? map['error'];
+        final errorCode = errorCodeValue is String ? errorCodeValue : null;
+        final error = errorValue is String ? errorValue : null;
+
+        if (errorCode == ErrorCode.invalidCredential.value) {
+          _removeStoredPasskeyCredentialId(username);
+          return AuthsignalResponse(data: true);
+        }
+
+        if (error != null || errorCode != null) {
+          return AuthsignalResponse.withError(
+            error: error,
+            errorCode: errorCode,
+          );
+        }
+      }
+
+      return AuthsignalResponse(data: false);
+    } catch (error) {
+      return _responseFromJsError(error);
+    }
+  }
+
+  @override
+  Future<bool> passkeyIsSupported() async {
+    return _isWebAuthnAvailable();
   }
 
   @override
@@ -299,7 +446,9 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeSmsMethod(
       'enroll',
-      [<String, dynamic>{'phoneNumber': phoneNumber}.jsify()!],
+      [
+        <String, dynamic>{'phoneNumber': phoneNumber}.jsify()!
+      ],
       (map) => EnrollResponse.fromMap(map),
     );
   }
@@ -324,7 +473,9 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeSmsMethod(
       'verify',
-      [<String, dynamic>{'code': code}.jsify()!],
+      [
+        <String, dynamic>{'code': code}.jsify()!
+      ],
       (map) => VerifyResponse.fromMap(map),
     );
   }
@@ -380,7 +531,9 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeTotpMethod(
       'verify',
-      [<String, dynamic>{'code': code}.jsify()!],
+      [
+        <String, dynamic>{'code': code}.jsify()!
+      ],
       (map) => VerifyResponse.fromMap(map),
     );
   }
@@ -436,7 +589,9 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     return _invokeWhatsappMethod(
       'verify',
-      [<String, dynamic>{'code': code}.jsify()!],
+      [
+        <String, dynamic>{'code': code}.jsify()!
+      ],
       (map) => VerifyResponse.fromMap(map),
     );
   }
@@ -519,8 +674,11 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     JSObject client,
     String method,
     Map<String, dynamic> payload,
-    T Function(Map<String, dynamic> data) parser,
-  ) async {
+    T Function(Map<String, dynamic> data) parser, {
+    void Function(Map<String, dynamic> data)? onData,
+    AuthsignalResponse<T>? Function(String? errorName, String? errorCode)?
+        onErrorHandler,
+  }) async {
     final passkeyApi = _getProperty(client, 'passkey');
     if (passkeyApi == null) {
       return AuthsignalResponse.withError(
@@ -538,16 +696,47 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
         return AuthsignalResponse(data: null);
       }
       final result = await (jsResult as JSPromise).toDart;
-      return _mapResponse(result, parser);
+      final mapped = _mapResponse(result, parser, onData: onData);
+      if (onErrorHandler != null && mapped.error != null) {
+        final override = onErrorHandler(null, mapped.errorCode);
+        if (override != null) return override;
+      }
+      return mapped;
     } catch (error) {
+      if (onErrorHandler != null) {
+        final override =
+            onErrorHandler(_jsErrorName(error), _jsErrorCode(error));
+        if (override != null) return override;
+      }
       return _responseFromJsError(error);
     }
   }
 
+  String? _jsErrorName(Object error) {
+    try {
+      if (error is JSObject && _hasProperty(error, 'name')) {
+        final value = _getProperty(error, 'name')?.dartify();
+        if (value is String) return value;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String? _jsErrorCode(Object error) {
+    try {
+      if (error is JSObject && _hasProperty(error, 'code')) {
+        final value = _getProperty(error, 'code')?.dartify();
+        if (value is String) return value;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   AuthsignalResponse<T> _mapResponse<T>(
     JSAny? jsResult,
-    T Function(Map<String, dynamic> data) parser,
-  ) {
+    T Function(Map<String, dynamic> data) parser, {
+    void Function(Map<String, dynamic> data)? onData,
+  }) {
     if (jsResult == null) {
       return AuthsignalResponse(data: null);
     }
@@ -567,10 +756,122 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
 
     final data = response['data'];
     if (data is Map) {
-      return AuthsignalResponse(data: parser(_toStringKeyedMap(data)));
+      final map = _toStringKeyedMap(data);
+      onData?.call(map);
+      return AuthsignalResponse(data: parser(map));
     }
 
     return AuthsignalResponse(data: null);
+  }
+
+  void _storeVerifiedPasskeyCredentialIdFromData(Map<String, dynamic> data) {
+    if (data['isVerified'] != true) {
+      return;
+    }
+
+    _storePasskeyCredentialIdFromData(data, data['username'] as String?);
+  }
+
+  void _storePasskeyCredentialIdFromData(
+    Map<String, dynamic> data,
+    String? username,
+  ) {
+    final credentialId = _passkeyCredentialIdFromData(data);
+    if (credentialId == null || credentialId.isEmpty) {
+      return;
+    }
+
+    final usernameFromData = _passkeyUsernameFromData(data);
+    _storePasskeyCredentialId(credentialId, usernameFromData ?? username);
+  }
+
+  String? _passkeyCredentialIdFromData(Map<String, dynamic> data) {
+    final registrationResponse =
+        _toStringKeyedMap(data['registrationResponse']);
+    final registrationRawId = registrationResponse['rawId'] as String?;
+    if (registrationRawId != null && registrationRawId.isNotEmpty) {
+      return registrationRawId;
+    }
+
+    final authenticationResponse =
+        _toStringKeyedMap(data['authenticationResponse']);
+    final authenticationRawId = authenticationResponse['rawId'] as String?;
+    if (authenticationRawId != null && authenticationRawId.isNotEmpty) {
+      return authenticationRawId;
+    }
+
+    final userAuthenticator = _toStringKeyedMap(data['userAuthenticator']);
+    final webauthnCredential =
+        _toStringKeyedMap(userAuthenticator['webauthnCredential']);
+    final credentialId = webauthnCredential['credentialId'] as String?;
+    if (credentialId != null && credentialId.isNotEmpty) {
+      return credentialId;
+    }
+
+    return null;
+  }
+
+  String? _passkeyUsernameFromData(Map<String, dynamic> data) {
+    final username = data['username'] as String?;
+    if (username != null && username.isNotEmpty) {
+      return username;
+    }
+
+    final userAuthenticator = _toStringKeyedMap(data['userAuthenticator']);
+    final authenticatorUsername = userAuthenticator['username'] as String?;
+    if (authenticatorUsername != null && authenticatorUsername.isNotEmpty) {
+      return authenticatorUsername;
+    }
+
+    return null;
+  }
+
+  String? _getStoredPasskeyCredentialId(String? username) {
+    final storage = web.window.localStorage;
+    final key = _passkeyCredentialIdStorageKeyForUsername(username);
+    final credentialId = storage.getItem(key);
+    if (credentialId != null && credentialId.isNotEmpty) {
+      return credentialId;
+    }
+
+    if (username != null && username.isNotEmpty) {
+      final defaultCredentialId =
+          storage.getItem(_passkeyCredentialIdStorageKey);
+      if (defaultCredentialId != null && defaultCredentialId.isNotEmpty) {
+        return defaultCredentialId;
+      }
+    }
+
+    return null;
+  }
+
+  void _storePasskeyCredentialId(String credentialId, String? username) {
+    final storage = web.window.localStorage;
+    storage.setItem(_passkeyCredentialIdStorageKey, credentialId);
+
+    if (username != null && username.isNotEmpty) {
+      storage.setItem(
+        _passkeyCredentialIdStorageKeyForUsername(username),
+        credentialId,
+      );
+    }
+  }
+
+  void _removeStoredPasskeyCredentialId(String? username) {
+    final storage = web.window.localStorage;
+    storage.removeItem(_passkeyCredentialIdStorageKey);
+
+    if (username != null && username.isNotEmpty) {
+      storage.removeItem(_passkeyCredentialIdStorageKeyForUsername(username));
+    }
+  }
+
+  String _passkeyCredentialIdStorageKeyForUsername(String? username) {
+    if (username == null || username.isEmpty) {
+      return _passkeyCredentialIdStorageKey;
+    }
+
+    return '${_passkeyCredentialIdStorageKey}_$username';
   }
 
   AuthsignalResponse<T> _responseFromJsError<T>(Object error) {
@@ -662,8 +963,8 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     const maxAttempts = _scriptLoadTimeoutMs ~/ _scriptLoadCheckIntervalMs;
     var attempt = 0;
 
-    Timer.periodic(
-        const Duration(milliseconds: _scriptLoadCheckIntervalMs), (timer) {
+    Timer.periodic(const Duration(milliseconds: _scriptLoadCheckIntervalMs),
+        (timer) {
       if (_hasBrowserSdk()) {
         timer.cancel();
         if (!completer.isCompleted) {
