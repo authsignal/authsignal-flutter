@@ -26,7 +26,9 @@ export 'src/types.dart'
         ChallengeResponse,
         VerifyResponse,
         ClaimChallengeResponse,
-        InAppVerifyResponse;
+        InAppVerifyResponse,
+        VerifyPinResponse,
+        KeychainAccess;
 
 void _ensureMethodChannelImplementation() {
   if (!kIsWeb && AuthsignalFlutterPlatform.isDefaultInstance) {
@@ -37,6 +39,7 @@ void _ensureMethodChannelImplementation() {
 class Authsignal {
   String tenantID;
   String baseURL;
+  String? deviceID;
 
   late AuthsignalPasskey passkey;
   late AuthsignalPush push;
@@ -49,9 +52,11 @@ class Authsignal {
 
   bool _initialized = false;
 
-  Authsignal(
-      {required this.tenantID,
-      this.baseURL = "https://api.authsignal.com/v1"}) {
+  Authsignal({
+    required this.tenantID,
+    this.baseURL = "https://api.authsignal.com/v1",
+    this.deviceID,
+  }) {
     _ensureMethodChannelImplementation();
 
     passkey = AuthsignalPasskey(initCheck: initCheck);
@@ -66,8 +71,11 @@ class Authsignal {
 
   Future<void> initCheck() async {
     if (!_initialized) {
-      await AuthsignalFlutterPlatform.instance
-          .initialize(tenantId: tenantID, baseUrl: baseURL);
+      await AuthsignalFlutterPlatform.instance.initialize(
+        tenantId: tenantID,
+        baseUrl: baseURL,
+        deviceId: deviceID,
+      );
 
       _initialized = true;
     }
@@ -76,5 +84,10 @@ class Authsignal {
   Future<void> setToken(String token) async {
     await initCheck();
     await AuthsignalFlutterPlatform.instance.setToken(token);
+  }
+
+  Future<String?> getDeviceId() async {
+    await initCheck();
+    return AuthsignalFlutterPlatform.instance.getDeviceId();
   }
 }

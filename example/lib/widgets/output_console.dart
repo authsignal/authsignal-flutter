@@ -75,4 +75,3 @@ class OutputConsole extends StatelessWidget {
     );
   }
 }
-

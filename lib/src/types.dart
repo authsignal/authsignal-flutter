@@ -22,7 +22,8 @@ enum ErrorCode {
   noCredential('no_credential'),
   tokenNotSet('token_not_set'),
   tokenRequired('token_required'),
-  tokenInvalid('token_invalid');
+  tokenInvalid('token_invalid'),
+  invalidCredential('invalid_credential');
 
   const ErrorCode(this.value);
 
@@ -210,11 +211,15 @@ class ClaimChallengeResponse {
   final bool success;
   final String? userAgent;
   final String? ipAddress;
+  final String? actionCode;
+  final String? idempotencyKey;
 
   ClaimChallengeResponse({
     required this.success,
     required this.userAgent,
     required this.ipAddress,
+    required this.actionCode,
+    required this.idempotencyKey,
   });
 
   factory ClaimChallengeResponse.fromMap(Map<String, dynamic> map) {
@@ -222,8 +227,42 @@ class ClaimChallengeResponse {
       success: map['success'],
       userAgent: map['userAgent'],
       ipAddress: map['ipAddress'],
+      actionCode: map['actionCode'],
+      idempotencyKey: map['idempotencyKey'],
     );
   }
+}
+
+class VerifyPinResponse {
+  final bool isVerified;
+  final String? token;
+  final String? userId;
+
+  VerifyPinResponse({
+    required this.isVerified,
+    required this.token,
+    required this.userId,
+  });
+
+  factory VerifyPinResponse.fromMap(Map<String, dynamic> map) {
+    return VerifyPinResponse(
+      isVerified: map['isVerified'],
+      token: map['token'],
+      userId: map['userId'],
+    );
+  }
+}
+
+enum KeychainAccess {
+  afterFirstUnlock('afterFirstUnlock'),
+  afterFirstUnlockThisDeviceOnly('afterFirstUnlockThisDeviceOnly'),
+  whenUnlocked('whenUnlocked'),
+  whenUnlockedThisDeviceOnly('whenUnlockedThisDeviceOnly'),
+  whenPasscodeSetThisDeviceOnly('whenPasscodeSetThisDeviceOnly');
+
+  const KeychainAccess(this.value);
+
+  final String value;
 }
 
 class InAppVerifyResponse {
@@ -248,4 +287,3 @@ class InAppVerifyResponse {
     );
   }
 }
-

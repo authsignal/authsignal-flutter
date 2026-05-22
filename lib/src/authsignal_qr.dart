@@ -28,14 +28,24 @@ class AuthsignalQr {
     }
   }
 
-  Future<AuthsignalResponse<AppCredential>> addCredential({String? token}) async {
+  Future<AuthsignalResponse<AppCredential>> addCredential({
+    String? token,
+    bool requireUserAuthentication = false,
+    KeychainAccess? keychainAccess,
+    bool performAttestation = false,
+  }) async {
     await initCheck();
 
-    var arguments = <String, dynamic>{'token': token};
+    final arguments = <String, dynamic>{
+      'token': token,
+      'requireUserAuthentication': requireUserAuthentication,
+      'keychainAccess': keychainAccess?.value,
+      'performAttestation': performAttestation,
+    };
 
     try {
-      final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('qr.addCredential', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'qr.addCredential', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: AppCredential.fromMap(data));
@@ -71,8 +81,8 @@ class AuthsignalQr {
     var arguments = <String, dynamic>{'challengeId': challengeId};
 
     try {
-      final data = await methodChannel
-          .invokeMapMethod<String, dynamic>('qr.claimChallenge', arguments);
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'qr.claimChallenge', arguments);
 
       if (data != null) {
         return AuthsignalResponse(data: ClaimChallengeResponse.fromMap(data));
@@ -112,4 +122,3 @@ class AuthsignalQr {
     }
   }
 }
-

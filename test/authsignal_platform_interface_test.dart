@@ -12,8 +12,11 @@ class _MockAuthsignalPlatform extends AuthsignalFlutterPlatform {
   bool verifyCalled = false;
 
   @override
-  Future<void> initialize(
-      {required String tenantId, required String baseUrl}) async {
+  Future<void> initialize({
+    required String tenantId,
+    required String baseUrl,
+    String? deviceId,
+  }) async {
     initializeCalled = true;
     lastTenantId = tenantId;
     lastBaseUrl = baseUrl;

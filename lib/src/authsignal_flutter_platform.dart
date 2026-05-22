@@ -20,12 +20,20 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<void> initialize({required String tenantId, required String baseUrl}) {
+  Future<void> initialize({
+    required String tenantId,
+    required String baseUrl,
+    String? deviceId,
+  }) {
     throw UnimplementedError('initialize() has not been implemented.');
   }
 
   Future<void> setToken(String token) {
     throw UnimplementedError('setToken() has not been implemented.');
+  }
+
+  Future<String?> getDeviceId() {
+    throw UnimplementedError('getDeviceId() has not been implemented.');
   }
 
   Future<AuthsignalResponse<EnrollResponse>> emailEnroll(String email) {
@@ -45,6 +53,7 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
     String? username,
     String? displayName,
     bool useAutoRegister = false,
+    bool ignorePasskeyAlreadyExistsError = false,
   }) {
     throw UnimplementedError('passkeySignUp() has not been implemented.');
   }
@@ -64,6 +73,17 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
 
   Future<AuthsignalResponse<bool>> passkeyIsAvailable() {
     throw UnimplementedError('passkeyIsAvailable() has not been implemented.');
+  }
+
+  Future<bool> passkeyIsSupported() {
+    throw UnimplementedError('passkeyIsSupported() has not been implemented.');
+  }
+
+  Future<AuthsignalResponse<bool>> passkeyShouldPromptToCreatePasskey({
+    String? username,
+  }) {
+    throw UnimplementedError(
+        'passkeyShouldPromptToCreatePasskey() has not been implemented.');
   }
 
   Future<AuthsignalResponse<EnrollResponse>> smsEnroll(String phoneNumber) {
@@ -96,4 +116,3 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
 }
 
 class _TokenAuthsignalFlutterPlatform extends AuthsignalFlutterPlatform {}
-
