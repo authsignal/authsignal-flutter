@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'authsignal_flutter'
-  s.version          = '2.4.0'
+  s.version          = '2.4.1'
   s.summary          = 'The Authsignal Flutter SDK.'
   s.description      = 'The Authsignal Flutter SDK.'
   s.homepage         = 'https://www.authsignal.com'
@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.dependency 'Authsignal', '~> 2.7'
+  s.dependency 'Authsignal', '~> 2.8.1'
   s.platform = :ios, '13.0'
 
   # Flutter.framework does not contain a i386 slice.

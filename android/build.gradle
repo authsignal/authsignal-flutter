@@ -1,5 +1,5 @@
 group 'com.authsignal.authsignal_flutter'
-version '2.4.0'
+version '2.4.1'
 
 buildscript {
     ext.kotlin_version = '1.7.10'
@@ -46,9 +46,14 @@ android {
 
     defaultConfig {
         minSdkVersion 23
+        buildConfigField "String", "VERSION_NAME", "\"${project.version}\""
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     dependencies {
-        implementation 'com.authsignal:authsignal-android:3.8.0'
+        implementation 'com.authsignal:authsignal-android:3.9.1'
     }
 }

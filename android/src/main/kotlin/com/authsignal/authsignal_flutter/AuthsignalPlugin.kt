@@ -2,6 +2,7 @@ package com.authsignal.authsignal_flutter
 
 import android.app.Activity
 import android.content.Context
+import com.authsignal.AuthsignalRequestMetadata
 import com.authsignal.DeviceCache
 import com.authsignal.TokenCache
 import com.authsignal.email.AuthsignalEmail
@@ -54,6 +55,12 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val tenantID = call.argument<String>("tenantID")!!
         val baseURL = call.argument<String>("baseURL")!!
         val deviceID = call.argument<String>("deviceID")
+
+        AuthsignalRequestMetadata.setWrapperSDK(
+          sdk = "flutter",
+          version = BuildConfig.VERSION_NAME,
+          userAgentToken = "AuthsignalFlutterSDK",
+        )
 
         context?.let {
           DeviceCache.shared.initialize(it, deviceID)

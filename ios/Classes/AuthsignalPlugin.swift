@@ -2,6 +2,8 @@ import Flutter
 import UIKit
 import Authsignal
 
+private let authsignalFlutterVersion = "2.4.1"
+
 public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var passkey: AuthsignalPasskey?
   var push: AuthsignalPush?
@@ -28,6 +30,12 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let tenantID = arguments["tenantID"] as! String
       let baseURL = arguments["baseURL"] as! String
       let deviceID = arguments["deviceID"] as? String
+
+      AuthsignalRequestMetadata.setWrapperSDK(
+        "flutter",
+        version: authsignalFlutterVersion,
+        userAgentToken: "AuthsignalFlutterSDK"
+      )
 
       self.customDeviceID = deviceID
       self.passkey = AuthsignalPasskey(tenantID: tenantID, baseURL: baseURL, deviceID: deviceID)

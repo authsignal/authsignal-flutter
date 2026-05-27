@@ -1,3 +1,7 @@
+## 2.4.1
+
+- Added Authsignal SDK identity/version headers and wrapper-aware User-Agent metadata for native mobile requests.
+
 ## 2.4.0
 
 ### New Features
