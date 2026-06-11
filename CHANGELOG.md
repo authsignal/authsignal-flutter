@@ -1,3 +1,7 @@
+## 2.5.0
+
+- Added public custom data points to challenge responses: action-scope data under `custom` and user-scope data under `user.custom` on `AppChallenge` and `ClaimChallengeResponse`.
+
 ## 2.4.1
 
 - Added Authsignal SDK identity/version headers and wrapper-aware User-Agent metadata for native mobile requests.
