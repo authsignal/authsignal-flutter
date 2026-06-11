@@ -24,6 +24,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.longOrNull
 
 class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
   private lateinit var channel : MethodChannel
@@ -230,7 +238,9 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "idempotencyKey" to it.idempotencyKey,
               "ipAddress" to it.ipAddress,
               "deviceId" to it.deviceId,
-              "userAgent" to it.userAgent
+              "userAgent" to it.userAgent,
+              "custom" to jsonElementToAny(it.custom),
+              "user" to it.user?.let { user -> mapOf("custom" to jsonElementToAny(user.custom)) }
             )
 
             result.success(data)
@@ -477,6 +487,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "ipAddress" to it.ipAddress,
               "actionCode" to it.actionCode,
               "idempotencyKey" to it.idempotencyKey,
+              "custom" to jsonElementToAny(it.custom),
+              "user" to it.user?.let { user -> mapOf("custom" to jsonElementToAny(user.custom)) },
             )
 
             result.success(data)
@@ -669,6 +681,22 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
 
   override fun onDetachedFromActivity() {
     activity = null
+  }
+
+  private fun jsonElementToAny(element: JsonElement?): Any? {
+    return when (element) {
+      null, is JsonNull -> null
+      is JsonPrimitive -> {
+        if (element.isString) {
+          element.content
+        } else {
+          element.booleanOrNull ?: element.longOrNull ?: element.doubleOrNull ?: element.content
+        }
+      }
+      is JsonObject -> element.mapValues { jsonElementToAny(it.value) }
+      is JsonArray -> element.map { jsonElementToAny(it) }
+      else -> null
+    }
   }
 
   private fun <T>handleResponse(response: AuthsignalResponse<T>, result: MethodChannel.Result): T? {

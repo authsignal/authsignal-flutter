@@ -117,6 +117,8 @@ class AppChallenge {
   final String? userAgent;
   final String? deviceId;
   final String? ipAddress;
+  final Map<String, dynamic>? custom;
+  final ChallengeUser? user;
 
   AppChallenge({
     required this.challengeId,
@@ -125,6 +127,8 @@ class AppChallenge {
     required this.userAgent,
     required this.deviceId,
     required this.ipAddress,
+    this.custom,
+    this.user,
   });
 
   factory AppChallenge.fromMap(Map<String, dynamic> map) {
@@ -135,6 +139,22 @@ class AppChallenge {
       userAgent: map['userAgent'],
       deviceId: map['deviceId'],
       ipAddress: map['ipAddress'],
+      custom: (map['custom'] as Map?)?.cast<String, dynamic>(),
+      user: map['user'] != null
+          ? ChallengeUser.fromMap((map['user'] as Map).cast<String, dynamic>())
+          : null,
+    );
+  }
+}
+
+class ChallengeUser {
+  final Map<String, dynamic>? custom;
+
+  ChallengeUser({this.custom});
+
+  factory ChallengeUser.fromMap(Map<String, dynamic> map) {
+    return ChallengeUser(
+      custom: (map['custom'] as Map?)?.cast<String, dynamic>(),
     );
   }
 }
@@ -213,6 +233,8 @@ class ClaimChallengeResponse {
   final String? ipAddress;
   final String? actionCode;
   final String? idempotencyKey;
+  final Map<String, dynamic>? custom;
+  final ChallengeUser? user;
 
   ClaimChallengeResponse({
     required this.success,
@@ -220,6 +242,8 @@ class ClaimChallengeResponse {
     required this.ipAddress,
     required this.actionCode,
     required this.idempotencyKey,
+    this.custom,
+    this.user,
   });
 
   factory ClaimChallengeResponse.fromMap(Map<String, dynamic> map) {
@@ -229,6 +253,10 @@ class ClaimChallengeResponse {
       ipAddress: map['ipAddress'],
       actionCode: map['actionCode'],
       idempotencyKey: map['idempotencyKey'],
+      custom: (map['custom'] as Map?)?.cast<String, dynamic>(),
+      user: map['user'] != null
+          ? ChallengeUser.fromMap((map['user'] as Map).cast<String, dynamic>())
+          : null,
     );
   }
 }
