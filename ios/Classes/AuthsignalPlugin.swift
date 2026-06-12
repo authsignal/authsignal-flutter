@@ -226,13 +226,15 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
           result(error)
         } else if let challenge = response.data as? AppChallenge {
-          let data: [String: String?] = [
+          let data: [String: Any?] = [
             "challengeId": challenge.challengeId,
             "actionCode": challenge.actionCode,
             "idempotencyKey": challenge.idempotencyKey,
             "userAgent": challenge.userAgent,
             "deviceId": challenge.deviceId,
             "ipAddress": challenge.ipAddress,
+            "custom": challenge.custom?.mapValues { $0.value },
+            "user": challenge.user.map { user in ["custom": user.custom?.mapValues { $0.value }] },
           ]
 
           result(data)
@@ -532,6 +534,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "ipAddress": data.ipAddress,
             "actionCode": data.actionCode,
             "idempotencyKey": data.idempotencyKey,
+            "custom": data.custom?.mapValues { $0.value },
+            "user": data.user.map { user in ["custom": user.custom?.mapValues { $0.value }] },
           ]
 
           result(claimResponse)
