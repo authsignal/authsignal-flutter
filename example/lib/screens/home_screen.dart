@@ -36,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _performAttestation = false;
   KeychainAccess? _keychainAccess;
 
+  // Push verification
+  String? _lastPushChallengeId;
+
   // Passkey options
   bool _ignorePasskeyAlreadyExistsError = false;
 
@@ -345,6 +348,8 @@ class _HomeScreenState extends State<HomeScreen> {
             _buildDeviceInfoSection(),
             const SizedBox(height: 16),
             _buildInAppAuthCard(),
+            const SizedBox(height: 16),
+            _buildPushAuthCard(),
             const SizedBox(height: 16),
             _buildPinAuthSection(),
             const SizedBox(height: 16),
@@ -909,6 +914,161 @@ class _HomeScreenState extends State<HomeScreen> {
         _addOutput('   This device is now registered as trusted');
       } else {
         _addOutput('❌ Failed to add credential: ${result.error}');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Widget _buildPushAuthCard() {
+    return FeatureCard(
+      title: '📬 Push Verification (mobile)',
+      description:
+          'Push credential enrolled separately from in-app. Challenges are fetched with a signed '
+          'request, so public custom data points are included.',
+      actions: [
+        ElevatedButton.icon(
+          onPressed: _isInitialized ? _getPushCredential : null,
+          icon: const Icon(Icons.info, size: 18),
+          label: const Text('Get Credential'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _isInitialized ? _addPushCredential : null,
+          icon: const Icon(Icons.add_circle, size: 18),
+          label: const Text('Enroll Push'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _isInitialized ? _getPushChallenge : null,
+          icon: const Icon(Icons.notifications_active, size: 18),
+          label: const Text('Get Challenge'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _isInitialized && _lastPushChallengeId != null
+              ? () => _updatePushChallenge(approved: true)
+              : null,
+          icon: const Icon(Icons.check_circle, size: 18),
+          label: const Text('Approve'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _isInitialized && _lastPushChallengeId != null
+              ? () => _updatePushChallenge(approved: false)
+              : null,
+          icon: const Icon(Icons.cancel, size: 18),
+          label: const Text('Reject'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _isInitialized ? _removePushCredential : null,
+          icon: const Icon(Icons.remove_circle, size: 18),
+          label: const Text('Remove'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _getPushCredential() async {
+    try {
+      final result = await authsignal.push.getCredential();
+      final credential = result.data;
+
+      if (credential == null) {
+        _addOutput('ℹ️ No push credential on this device'
+            '${result.error != null ? ' (${result.error})' : ''}');
+        return;
+      }
+
+      _addOutput('✅ Push credential found');
+      _addOutput('   Credential ID: ${credential.credentialId}');
+      _addOutput('   User ID: ${credential.userId}');
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _addPushCredential() async {
+    try {
+      _addOutput('📝 Requesting registration token from backend...');
+      final tokenResponse = await backendService.getRegistrationToken(
+        _userIdController.text,
+      );
+
+      if (tokenResponse == null) {
+        _addOutput('❌ Failed to get registration token');
+        _addOutput('   Check backend connection');
+        return;
+      }
+
+      _addOutput('✅ Token received (${tokenResponse.state})');
+
+      _addOutput('📬 Enrolling push credential...');
+      final result = await authsignal.push.addCredential(
+        token: tokenResponse.token,
+      );
+
+      if (result.data != null) {
+        _addOutput('✅ Push credential enrolled!');
+        _addOutput('   Credential ID: ${result.data!.credentialId}');
+        _addOutput('   User ID: ${result.data!.userId}');
+      } else {
+        _addOutput('❌ Failed to enroll push: ${result.error}');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _getPushChallenge() async {
+    try {
+      _addOutput('📬 Fetching push challenge (signed)...');
+      final result = await authsignal.push.getChallenge();
+      final challenge = result.data;
+
+      if (challenge == null) {
+        _addOutput(result.error != null
+            ? '❌ Error: ${result.error}'
+            : 'ℹ️ No pending challenge for this device');
+        return;
+      }
+
+      setState(() => _lastPushChallengeId = challenge.challengeId);
+
+      _addOutput('✅ Challenge: ${challenge.challengeId}');
+      _addOutput('   actionCode: ${challenge.actionCode}');
+      _addOutput('   custom: ${challenge.custom ?? '(none)'}');
+      _addOutput('   user.custom: ${challenge.user?.custom ?? '(none)'}');
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _updatePushChallenge({required bool approved}) async {
+    final challengeId = _lastPushChallengeId;
+    if (challengeId == null) return;
+
+    try {
+      final result = await authsignal.push.updateChallenge(
+        challengeId: challengeId,
+        approved: approved,
+      );
+
+      if (result.data == true) {
+        _addOutput(approved ? '✅ Challenge approved' : '🚫 Challenge rejected');
+        setState(() => _lastPushChallengeId = null);
+      } else {
+        _addOutput('❌ Failed to update challenge: ${result.error}');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _removePushCredential() async {
+    try {
+      final result = await authsignal.push.removeCredential();
+
+      if (result.data == true) {
+        _addOutput('✅ Push credential removed');
+      } else {
+        _addOutput('❌ Failed to remove push credential: ${result.error}');
       }
     } catch (e) {
       _addOutput('❌ Error: $e');
