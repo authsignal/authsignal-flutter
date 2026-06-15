@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:authsignal_flutter/authsignal_flutter.dart';
 import '../config.dart';
 import '../services/backend_service.dart';
+import '../services/push_service.dart';
 import '../widgets/output_console.dart';
 import '../widgets/config_card.dart';
 import '../widgets/feature_card.dart';
@@ -1000,8 +1001,18 @@ class _HomeScreenState extends State<HomeScreen> {
       _addOutput('✅ Token received (${tokenResponse.state})');
 
       _addOutput('📬 Enrolling push credential...');
+
+      final pushToken = await PushService.getPushToken();
+      if (pushToken != null) {
+        _addOutput('   Push token (${PushService.mode.name}): '
+            '${pushToken.substring(0, pushToken.length.clamp(0, 12))}…');
+      } else {
+        _addOutput('   ⚠️ No push token (simulator / Firebase not configured)');
+      }
+
       final result = await authsignal.push.addCredential(
         token: tokenResponse.token,
+        pushToken: pushToken,
       );
 
       if (result.data != null) {
