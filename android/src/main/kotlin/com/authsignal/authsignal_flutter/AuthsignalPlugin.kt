@@ -197,11 +197,13 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       "push.addCredential" -> {
         val token = call.argument<String>("token")
         val performAttestation = call.argument<Boolean>("performAttestation") ?: false
+        val pushToken = call.argument<String>("pushToken")
 
         coroutineScope.launch {
           val response = push.addCredential(
             token = token,
             performAttestation = performAttestation,
+            pushToken = pushToken,
           )
 
           handleResponse(response, result)?.let {

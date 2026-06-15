@@ -33,6 +33,7 @@ class AuthsignalPush {
     bool requireUserAuthentication = false,
     KeychainAccess? keychainAccess,
     bool performAttestation = false,
+    String? pushToken,
   }) async {
     await initCheck();
 
@@ -41,6 +42,7 @@ class AuthsignalPush {
       'requireUserAuthentication': requireUserAuthentication,
       'keychainAccess': keychainAccess?.value,
       'performAttestation': performAttestation,
+      'pushToken': pushToken,
     };
 
     try {

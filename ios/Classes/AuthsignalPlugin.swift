@@ -180,13 +180,15 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let requireUserAuthentication = arguments["requireUserAuthentication"] as? Bool ?? false
       let keychainAccess = AuthsignalPlugin.getKeychainAccess(value: arguments["keychainAccess"] as? String)
       let performAttestation = arguments["performAttestation"] as? Bool ?? false
+      let pushToken = arguments["pushToken"] as? String
 
       Task.init {
         let response = await self.push!.addCredential(
           token: token,
           keychainAccess: keychainAccess,
           userPresenceRequired: requireUserAuthentication,
-          performAttestation: performAttestation
+          performAttestation: performAttestation,
+          pushToken: pushToken
         )
 
         if response.error != nil {
