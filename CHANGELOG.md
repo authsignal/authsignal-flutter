@@ -1,3 +1,7 @@
+## 2.6.0
+
+- Added an optional `pushToken` parameter to `push.addCredential` for registering a device push token during enrollment.
+
 ## 2.5.0
 
 - Added public custom data points to challenge responses: action-scope data under `custom` and user-scope data under `user.custom` on `AppChallenge` and `ClaimChallengeResponse`.
