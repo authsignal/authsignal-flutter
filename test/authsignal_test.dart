@@ -222,11 +222,10 @@ void main() {
     expect(result.data!.token, 'result_token');
   });
 
-  test('passkey.signUp forwards syncCredentials', () async {
+  test('passkey.signUp defaults syncCredentials to false', () async {
     await authsignal.passkey.signUp(
       token: 'initial_token',
       username: 'bob',
-      syncCredentials: false,
     );
 
     final call =
@@ -236,17 +235,41 @@ void main() {
     expect(arguments['syncCredentials'], false);
   });
 
-  test('passkey.signIn forwards syncCredentials', () async {
-    await authsignal.passkey.signIn(
+  test('passkey.signUp forwards syncCredentials', () async {
+    await authsignal.passkey.signUp(
       token: 'initial_token',
-      syncCredentials: false,
+      username: 'bob',
+      syncCredentials: true,
     );
+
+    final call =
+        methodCalls.lastWhere((call) => call.method == 'passkey.signUp');
+    final arguments = call.arguments as Map<Object?, Object?>;
+
+    expect(arguments['syncCredentials'], true);
+  });
+
+  test('passkey.signIn defaults syncCredentials to false', () async {
+    await authsignal.passkey.signIn(token: 'initial_token');
 
     final call =
         methodCalls.lastWhere((call) => call.method == 'passkey.signIn');
     final arguments = call.arguments as Map<Object?, Object?>;
 
     expect(arguments['syncCredentials'], false);
+  });
+
+  test('passkey.signIn forwards syncCredentials', () async {
+    await authsignal.passkey.signIn(
+      token: 'initial_token',
+      syncCredentials: true,
+    );
+
+    final call =
+        methodCalls.lastWhere((call) => call.method == 'passkey.signIn');
+    final arguments = call.arguments as Map<Object?, Object?>;
+
+    expect(arguments['syncCredentials'], true);
   });
 
   test('push.getCredential', () async {

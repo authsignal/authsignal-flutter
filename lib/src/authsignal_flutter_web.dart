@@ -165,7 +165,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     String? displayName,
     bool useAutoRegister = false,
     bool ignorePasskeyAlreadyExistsError = false,
-    bool syncCredentials = true,
+    bool syncCredentials = false,
   }) {
     final client = _client;
     if (client == null) {
@@ -221,7 +221,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     String? token,
     bool autofill = false,
     bool preferImmediatelyAvailableCredentials = true,
-    bool syncCredentials = true,
+    bool syncCredentials = false,
   }) {
     final client = _client;
     if (client == null) {

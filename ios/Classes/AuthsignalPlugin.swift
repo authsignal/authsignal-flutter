@@ -65,7 +65,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let username = arguments["username"] as? String
       let displayName = arguments["displayName"] as? String
       let ignorePasskeyAlreadyExistsError = arguments["ignorePasskeyAlreadyExistsError"] as? Bool ?? false
-      let syncCredentials = arguments["syncCredentials"] as? Bool ?? true
+      let syncCredentials = arguments["syncCredentials"] as? Bool ?? false
 
       Task.init {
         let response = await self.passkey!.signUp(
@@ -94,7 +94,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let token = arguments["token"] as? String
       let autofill = arguments["autofill"] as? Bool ?? false
       let preferImmediatelyAvailableCredentials = arguments["preferImmediatelyAvailableCredentials"] as? Bool ?? true
-      let syncCredentials = arguments["syncCredentials"] as? Bool ?? true
+      let syncCredentials = arguments["syncCredentials"] as? Bool ?? false
 
       Task.init {
         let response = await self.passkey!.signIn(

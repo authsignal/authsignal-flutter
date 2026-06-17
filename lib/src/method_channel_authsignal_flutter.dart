@@ -93,7 +93,7 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
     String? displayName,
     bool useAutoRegister = false,
     bool ignorePasskeyAlreadyExistsError = false,
-    bool syncCredentials = true,
+    bool syncCredentials = false,
   }) async {
     final arguments = <String, dynamic>{
       'token': token,
@@ -128,7 +128,7 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
     String? token,
     bool autofill = false,
     bool preferImmediatelyAvailableCredentials = true,
-    bool syncCredentials = true,
+    bool syncCredentials = false,
   }) async {
     final arguments = <String, dynamic>{
       'action': action,
