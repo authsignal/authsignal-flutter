@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Push verification
   String? _lastPushChallengeId;
+  PushMode _pushMode = PushService.mode;
 
   // Passkey options
   bool _ignorePasskeyAlreadyExistsError = false;
@@ -963,6 +964,47 @@ class _HomeScreenState extends State<HomeScreen> {
           label: const Text('Remove'),
         ),
       ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Push provider mode',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Firebase: register the FCM token on both platforms (managed Firebase '
+            'provider). APNS: register the raw APNs token on iOS / FCM on Android '
+            '(managed Default provider). APNS needs a physical iOS device and the '
+            'matching APNs environment configured in the Authsignal portal.',
+            style: TextStyle(fontSize: 11),
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<PushMode>(
+            segments: const [
+              ButtonSegment(
+                value: PushMode.firebase,
+                label: Text('Firebase'),
+                icon: Icon(Icons.local_fire_department, size: 16),
+              ),
+              ButtonSegment(
+                value: PushMode.apns,
+                label: Text('APNS (default)'),
+                icon: Icon(Icons.apple, size: 16),
+              ),
+            ],
+            selected: {_pushMode},
+            onSelectionChanged: (selection) {
+              final mode = selection.first;
+              setState(() {
+                _pushMode = mode;
+                PushService.mode = mode;
+              });
+              _addOutput('🔀 Push mode set to ${mode.name}');
+            },
+          ),
+        ],
+      ),
     );
   }
 

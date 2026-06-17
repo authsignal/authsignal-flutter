@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Push Notifications capability. Use "development" for debug builds and
+	     "production" for release/TestFlight/App Store builds. Required for the
+	     device to obtain an APNs token. -->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>
