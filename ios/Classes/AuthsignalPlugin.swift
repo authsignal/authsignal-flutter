@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import Authsignal
 
-private let authsignalFlutterVersion = "2.4.1"
+private let authsignalFlutterVersion = "2.7.0"
 
 public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var passkey: AuthsignalPasskey?
@@ -65,13 +65,15 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let username = arguments["username"] as? String
       let displayName = arguments["displayName"] as? String
       let ignorePasskeyAlreadyExistsError = arguments["ignorePasskeyAlreadyExistsError"] as? Bool ?? false
+      let syncCredentials = arguments["syncCredentials"] as? Bool ?? true
 
       Task.init {
         let response = await self.passkey!.signUp(
           token: token,
           username: username,
           displayName: displayName,
-          ignorePasskeyAlreadyExistsError: ignorePasskeyAlreadyExistsError
+          ignorePasskeyAlreadyExistsError: ignorePasskeyAlreadyExistsError,
+          syncCredentials: syncCredentials
         )
 
         if response.error != nil {
@@ -92,13 +94,15 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
       let token = arguments["token"] as? String
       let autofill = arguments["autofill"] as? Bool ?? false
       let preferImmediatelyAvailableCredentials = arguments["preferImmediatelyAvailableCredentials"] as? Bool ?? true
+      let syncCredentials = arguments["syncCredentials"] as? Bool ?? true
 
       Task.init {
         let response = await self.passkey!.signIn(
           token: token,
           action: action,
           autofill: autofill,
-          preferImmediatelyAvailableCredentials: preferImmediatelyAvailableCredentials
+          preferImmediatelyAvailableCredentials: preferImmediatelyAvailableCredentials,
+          syncCredentials: syncCredentials
         )
 
         if response.error != nil {

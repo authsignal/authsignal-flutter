@@ -54,6 +54,7 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
     String? displayName,
     bool useAutoRegister = false,
     bool ignorePasskeyAlreadyExistsError = false,
+    bool syncCredentials = true,
   }) {
     throw UnimplementedError('passkeySignUp() has not been implemented.');
   }
@@ -63,6 +64,7 @@ abstract class AuthsignalFlutterPlatform extends PlatformInterface {
     String? token,
     bool autofill = false,
     bool preferImmediatelyAvailableCredentials = true,
+    bool syncCredentials = true,
   }) {
     throw UnimplementedError('passkeySignIn() has not been implemented.');
   }

@@ -16,6 +16,7 @@ class AuthsignalPasskey {
     String? displayName,
     bool useAutoRegister = false,
     bool ignorePasskeyAlreadyExistsError = false,
+    bool syncCredentials = true,
   }) async {
     await initCheck();
 
@@ -25,6 +26,7 @@ class AuthsignalPasskey {
       displayName: displayName,
       useAutoRegister: useAutoRegister,
       ignorePasskeyAlreadyExistsError: ignorePasskeyAlreadyExistsError,
+      syncCredentials: syncCredentials,
     );
   }
 
@@ -33,6 +35,7 @@ class AuthsignalPasskey {
     String? token,
     bool autofill = false,
     bool preferImmediatelyAvailableCredentials = true,
+    bool syncCredentials = true,
   }) async {
     await initCheck();
 
@@ -51,6 +54,7 @@ class AuthsignalPasskey {
         autofill: autofill,
         preferImmediatelyAvailableCredentials:
             preferImmediatelyAvailableCredentials,
+        syncCredentials: syncCredentials,
       );
       return response;
     } finally {

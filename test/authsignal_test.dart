@@ -8,12 +8,16 @@ void main() {
   const MethodChannel channel = MethodChannel('authsignal');
 
   Authsignal authsignal = Authsignal(tenantID: 'mock_tenant_id');
+  late List<MethodCall> methodCalls;
 
   setUp(() {
+    methodCalls = [];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       channel,
       (MethodCall methodCall) async {
+        methodCalls.add(methodCall);
+
         switch (methodCall.method) {
           case "initialize":
             {
@@ -23,6 +27,18 @@ void main() {
           case "passkey.signUp":
             {
               return <String, dynamic>{'token': 'result_token'};
+            }
+
+          case "passkey.signIn":
+            {
+              return <String, dynamic>{
+                'isVerified': true,
+                'token': 'sign_in_token',
+                'userId': 'test_user_id',
+                'userAuthenticatorId': 'test_authenticator_id',
+                'username': 'test_username',
+                'displayName': 'Test User',
+              };
             }
 
           case "push.getCredential":
@@ -204,6 +220,33 @@ void main() {
         .signUp(token: 'initial_token', username: 'bob');
 
     expect(result.data!.token, 'result_token');
+  });
+
+  test('passkey.signUp forwards syncCredentials', () async {
+    await authsignal.passkey.signUp(
+      token: 'initial_token',
+      username: 'bob',
+      syncCredentials: false,
+    );
+
+    final call =
+        methodCalls.lastWhere((call) => call.method == 'passkey.signUp');
+    final arguments = call.arguments as Map<Object?, Object?>;
+
+    expect(arguments['syncCredentials'], false);
+  });
+
+  test('passkey.signIn forwards syncCredentials', () async {
+    await authsignal.passkey.signIn(
+      token: 'initial_token',
+      syncCredentials: false,
+    );
+
+    final call =
+        methodCalls.lastWhere((call) => call.method == 'passkey.signIn');
+    final arguments = call.arguments as Map<Object?, Object?>;
+
+    expect(arguments['syncCredentials'], false);
   });
 
   test('push.getCredential', () async {

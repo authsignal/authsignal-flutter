@@ -93,12 +93,14 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
     String? displayName,
     bool useAutoRegister = false,
     bool ignorePasskeyAlreadyExistsError = false,
+    bool syncCredentials = true,
   }) async {
     final arguments = <String, dynamic>{
       'token': token,
       'username': username,
       'displayName': displayName,
       'ignorePasskeyAlreadyExistsError': ignorePasskeyAlreadyExistsError,
+      'syncCredentials': syncCredentials,
     };
     if (useAutoRegister) {
       arguments['useAutoRegister'] = useAutoRegister;
@@ -126,6 +128,7 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
     String? token,
     bool autofill = false,
     bool preferImmediatelyAvailableCredentials = true,
+    bool syncCredentials = true,
   }) async {
     final arguments = <String, dynamic>{
       'action': action,
@@ -133,6 +136,7 @@ class MethodChannelAuthsignalFlutter extends AuthsignalFlutterPlatform {
       'autofill': autofill,
       'preferImmediatelyAvailableCredentials':
           preferImmediatelyAvailableCredentials,
+      'syncCredentials': syncCredentials,
     };
 
     try {

@@ -10,7 +10,7 @@ Add the Authsignal Flutter SDK to your project:
 
 ```yaml
 dependencies:
-  authsignal_flutter: ^2.5.0
+  authsignal_flutter: ^2.7.0
 ```
 
 Then install the package:
@@ -24,6 +24,8 @@ For iOS apps, install CocoaPods dependencies:
 ```bash
 cd ios && pod install
 ```
+
+For Android apps, use compile SDK 35 and Android Gradle Plugin 8.6.0 or newer.
 
 ## Initialization
 

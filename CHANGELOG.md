@@ -1,3 +1,9 @@
+## 2.7.0
+
+- Added passkey credential sync support with `syncCredentials` enabled by default for sign-up and sign-in.
+- Updated native dependencies to Authsignal iOS `~> 2.10.0` and Authsignal Android `3.11.0`.
+- Raised Android build tooling to support AndroidX Credentials 1.6.0.
+
 ## 2.6.0
 
 - Added an optional `pushToken` parameter to `push.addCredential` for registering a device push token during enrollment.
