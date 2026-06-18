@@ -1,15 +1,15 @@
 group 'com.authsignal.authsignal_flutter'
-version '2.5.0'
+version '2.7.0'
 
 buildscript {
-    ext.kotlin_version = '1.7.10'
+    ext.kotlin_version = '2.1.21'
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.0'
+        classpath 'com.android.tools.build:gradle:8.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -29,7 +29,7 @@ android {
         namespace 'com.authsignal.authsignal_flutter'
     }
 
-    compileSdkVersion 33
+    compileSdkVersion 35
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -54,7 +54,7 @@ android {
     }
 
     dependencies {
-        implementation 'com.authsignal:authsignal-android:3.10.0'
+        implementation 'com.authsignal:authsignal-android:3.11.0'
         implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
     }
 }

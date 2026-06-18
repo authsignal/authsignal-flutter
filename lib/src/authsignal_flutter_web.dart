@@ -165,6 +165,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     String? displayName,
     bool useAutoRegister = false,
     bool ignorePasskeyAlreadyExistsError = false,
+    bool syncCredentials = false,
   }) {
     final client = _client;
     if (client == null) {
@@ -184,6 +185,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       'token': effectiveToken,
       if (username != null) 'username': username,
       if (displayName != null) 'displayName': displayName,
+      'syncCredentials': syncCredentials,
     };
     if (useAutoRegister) {
       payload['useAutoRegister'] = true;
@@ -219,6 +221,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
     String? token,
     bool autofill = false,
     bool preferImmediatelyAvailableCredentials = true,
+    bool syncCredentials = false,
   }) {
     final client = _client;
     if (client == null) {
@@ -231,6 +234,7 @@ class AuthsignalFlutterWeb extends AuthsignalFlutterPlatform {
       if (autofill) 'autofill': true,
       'preferImmediatelyAvailableCredentials':
           preferImmediatelyAvailableCredentials,
+      'syncCredentials': syncCredentials,
     };
 
     return _invokePasskeyMethod(

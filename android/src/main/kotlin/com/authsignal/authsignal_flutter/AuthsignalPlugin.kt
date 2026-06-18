@@ -102,6 +102,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val displayName = call.argument<String>("displayName")
         val ignorePasskeyAlreadyExistsError =
           call.argument<Boolean>("ignorePasskeyAlreadyExistsError") ?: false
+        val syncCredentials = call.argument<Boolean>("syncCredentials") ?: false
 
         coroutineScope.launch {
           val response = passkey.signUp(
@@ -109,6 +110,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
             username = username,
             displayName = displayName,
             ignorePasskeyAlreadyExistsError = ignorePasskeyAlreadyExistsError,
+            syncCredentials = syncCredentials,
           )
 
           handleResponse(response, result)?.let {
@@ -126,12 +128,14 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         val token = call.argument<String>("token")
         val preferImmediatelyAvailableCredentials =
           call.argument<Boolean>("preferImmediatelyAvailableCredentials") ?: true
+        val syncCredentials = call.argument<Boolean>("syncCredentials") ?: false
 
         coroutineScope.launch {
           val response = passkey.signIn(
             action = action,
             token = token,
             preferImmediatelyAvailableCredentials = preferImmediatelyAvailableCredentials,
+            syncCredentials = syncCredentials,
           )
 
           handleResponse(response, result)?.let {
