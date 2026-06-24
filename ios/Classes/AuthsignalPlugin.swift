@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import Authsignal
 
-private let authsignalFlutterVersion = "2.7.0"
+private let authsignalFlutterVersion = "3.0.0"
 
 public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var passkey: AuthsignalPasskey?
