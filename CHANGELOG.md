@@ -1,3 +1,7 @@
+## 3.0.0
+
+- Updated the Android dependency to Authsignal Android `4.0.0`, which is compiled against Ktor 3.
+
 ## 2.7.0
 
 - Added opt-in passkey credential sync support with `syncCredentials` for sign-up and sign-in.
