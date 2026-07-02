@@ -1,5 +1,5 @@
 group 'com.authsignal.authsignal_flutter'
-version '3.0.0'
+version '3.1.0'
 
 buildscript {
     ext.kotlin_version = '2.1.21'
@@ -54,7 +54,7 @@ android {
     }
 
     dependencies {
-        implementation 'com.authsignal:authsignal-android:4.0.0'
+        implementation 'com.authsignal:authsignal-android:4.1.0'
         implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1'
     }
 }

@@ -119,4 +119,24 @@ class AuthsignalPush {
       return AuthsignalResponse.fromError(ex);
     }
   }
+
+  Future<AuthsignalResponse<UpdatedAppCredential>> updateCredential(
+      String pushToken) async {
+    await initCheck();
+
+    final arguments = <String, dynamic>{'pushToken': pushToken};
+
+    try {
+      final data = await methodChannel.invokeMapMethod<String, dynamic>(
+          'push.updateCredential', arguments);
+
+      if (data != null) {
+        return AuthsignalResponse(data: UpdatedAppCredential.fromMap(data));
+      } else {
+        return AuthsignalResponse(data: null);
+      }
+    } on PlatformException catch (ex) {
+      return AuthsignalResponse.fromError(ex);
+    }
+  }
 }
