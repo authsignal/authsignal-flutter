@@ -18,6 +18,7 @@ export 'src/types.dart'
         TokenPayloadOther,
         ErrorCode,
         AppCredential,
+        UpdatedAppCredential,
         AppChallenge,
         SignUpResponse,
         SignInResponse,

@@ -939,6 +939,11 @@ class _HomeScreenState extends State<HomeScreen> {
           label: const Text('Enroll Push'),
         ),
         ElevatedButton.icon(
+          onPressed: _isInitialized ? _updatePushCredential : null,
+          icon: const Icon(Icons.sync, size: 18),
+          label: const Text('Update Token'),
+        ),
+        ElevatedButton.icon(
           onPressed: _isInitialized ? _getPushChallenge : null,
           icon: const Icon(Icons.notifications_active, size: 18),
           label: const Text('Get Challenge'),
@@ -1021,6 +1026,33 @@ class _HomeScreenState extends State<HomeScreen> {
         _addOutput('   User ID: ${result.data!.userId}');
       } else {
         _addOutput('❌ Failed to enroll push: ${result.error}');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _updatePushCredential() async {
+    try {
+      final pushToken = await PushService.getPushToken();
+      if (pushToken == null) {
+        _addOutput('❌ No push token available to update the credential');
+        _addOutput('   Check simulator/device push configuration');
+        return;
+      }
+
+      _addOutput('📬 Updating push credential token...');
+      _addOutput('   Push token (${PushService.mode.name}): '
+          '${pushToken.substring(0, pushToken.length.clamp(0, 12))}…');
+
+      final result = await authsignal.push.updateCredential(pushToken);
+
+      if (result.data != null) {
+        _addOutput('✅ Push credential updated!');
+        _addOutput('   Authenticator ID: ${result.data!.userAuthenticatorId}');
+        _addOutput('   User ID: ${result.data!.userId}');
+      } else {
+        _addOutput('❌ Failed to update push credential: ${result.error}');
       }
     } catch (e) {
       _addOutput('❌ Error: $e');

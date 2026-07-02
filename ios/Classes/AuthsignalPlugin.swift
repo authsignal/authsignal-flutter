@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import Authsignal
 
-private let authsignalFlutterVersion = "3.0.0"
+private let authsignalFlutterVersion = "3.1.0"
 
 public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var passkey: AuthsignalPasskey?
@@ -267,6 +267,30 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
           result(error)
         } else {
           result(response.data)
+        }
+      }
+
+    case "push.updateCredential":
+      let arguments = call.arguments as! [String: Any]
+      let pushToken = arguments["pushToken"] as! String
+
+      Task.init {
+        let response = await self.push!.updateCredential(pushToken: pushToken)
+
+        if response.error != nil {
+          let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
+          result(error)
+        } else if let data = response.data {
+          let credential: [String: String?] = [
+            "userAuthenticatorId": data.userAuthenticatorId,
+            "userId": data.userId,
+            "lastVerifiedAt": data.lastVerifiedAt,
+            "pushToken": data.pushToken,
+          ]
+
+          result(credential)
+        } else {
+          result(nil)
         }
       }
 

@@ -110,6 +110,29 @@ class AppCredential {
   }
 }
 
+class UpdatedAppCredential {
+  final String userAuthenticatorId;
+  final String userId;
+  final String lastVerifiedAt;
+  final String pushToken;
+
+  UpdatedAppCredential({
+    required this.userAuthenticatorId,
+    required this.userId,
+    required this.lastVerifiedAt,
+    required this.pushToken,
+  });
+
+  factory UpdatedAppCredential.fromMap(Map<String, dynamic> map) {
+    return UpdatedAppCredential(
+      userAuthenticatorId: map['userAuthenticatorId'],
+      userId: map['userId'],
+      lastVerifiedAt: map['lastVerifiedAt'],
+      pushToken: map['pushToken'],
+    );
+  }
+}
+
 class AppChallenge {
   final String challengeId;
   final String? actionCode;

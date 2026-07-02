@@ -268,6 +268,25 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
         }
       }
 
+      "push.updateCredential" -> {
+        val pushToken = call.argument<String>("pushToken")!!
+
+        coroutineScope.launch {
+          val response = push.updateCredential(pushToken)
+
+          handleResponse(response, result)?.let {
+            val data = mapOf(
+              "userAuthenticatorId" to it.userAuthenticatorId,
+              "userId" to it.userId,
+              "lastVerifiedAt" to it.lastVerifiedAt,
+              "pushToken" to it.pushToken,
+            )
+
+            result.success(data)
+          }
+        }
+      }
+
       "email.enroll" -> {
         val emailAddress = call.argument<String>("email")!!
 

@@ -1,3 +1,8 @@
+## 3.1.0
+
+- Added `push.updateCredential(pushToken)` so enrolled devices can refresh their push token.
+- Updated native dependencies to Authsignal iOS `~> 2.11.0` and Authsignal Android `4.1.0`.
+
 ## 3.0.0
 
 - Updated the Android dependency to Authsignal Android `4.0.0`, which is compiled against Ktor 3.

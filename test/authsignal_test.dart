@@ -67,6 +67,16 @@ void main() {
               return true;
             }
 
+          case "push.updateCredential":
+            {
+              return <String, dynamic>{
+                'userAuthenticatorId': 'test_push_authenticator_id',
+                'userId': 'test_user_id',
+                'lastVerifiedAt': '2023-01-03T00:00:00Z',
+                'pushToken': methodCall.arguments['pushToken'],
+              };
+            }
+
           case "qr.getCredential":
             {
               return <String, dynamic>{
@@ -248,6 +258,15 @@ void main() {
     );
 
     expect(result.data, true);
+  });
+
+  test('push.updateCredential', () async {
+    final result = await authsignal.push.updateCredential('test-push-token');
+
+    expect(result.data!.userAuthenticatorId, 'test_push_authenticator_id');
+    expect(result.data!.userId, 'test_user_id');
+    expect(result.data!.lastVerifiedAt, '2023-01-03T00:00:00Z');
+    expect(result.data!.pushToken, 'test-push-token');
   });
 
   test('qr.getCredential', () async {
