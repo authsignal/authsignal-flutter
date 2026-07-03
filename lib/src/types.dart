@@ -92,12 +92,14 @@ class AppCredential {
   String createdAt;
   String userId;
   String? lastAuthenticatedAt;
+  String? expiresAt;
 
   AppCredential({
     required this.credentialId,
     required this.createdAt,
     required this.userId,
     required this.lastAuthenticatedAt,
+    this.expiresAt,
   });
 
   factory AppCredential.fromMap(Map<String, dynamic> map) {
@@ -106,21 +108,34 @@ class AppCredential {
       createdAt: map['createdAt'],
       userId: map['userId'],
       lastAuthenticatedAt: map['lastAuthenticatedAt'],
+      expiresAt: map['expiresAt'],
     );
   }
+}
+
+class UpdateCredentialInput {
+  final String? pushToken;
+  final bool resetExpiry;
+
+  const UpdateCredentialInput({
+    this.pushToken,
+    this.resetExpiry = false,
+  });
 }
 
 class UpdatedAppCredential {
   final String userAuthenticatorId;
   final String userId;
   final String lastVerifiedAt;
-  final String pushToken;
+  final String? pushToken;
+  final String? expiresAt;
 
   UpdatedAppCredential({
     required this.userAuthenticatorId,
     required this.userId,
     required this.lastVerifiedAt,
-    required this.pushToken,
+    this.pushToken,
+    this.expiresAt,
   });
 
   factory UpdatedAppCredential.fromMap(Map<String, dynamic> map) {
@@ -129,6 +144,7 @@ class UpdatedAppCredential {
       userId: map['userId'],
       lastVerifiedAt: map['lastVerifiedAt'],
       pushToken: map['pushToken'],
+      expiresAt: map['expiresAt'],
     );
   }
 }

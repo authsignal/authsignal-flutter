@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:authsignal_flutter/authsignal_flutter.dart';
 import '../config.dart';
 import '../services/backend_service.dart';
@@ -934,6 +935,11 @@ class _HomeScreenState extends State<HomeScreen> {
           label: const Text('Get Credential'),
         ),
         ElevatedButton.icon(
+          onPressed: _isInitialized ? _copyPushPublicKey : null,
+          icon: const Icon(Icons.copy, size: 18),
+          label: const Text('Copy Public Key'),
+        ),
+        ElevatedButton.icon(
           onPressed: _isInitialized ? _addPushCredential : null,
           icon: const Icon(Icons.add_circle, size: 18),
           label: const Text('Enroll Push'),
@@ -942,6 +948,11 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: _isInitialized ? _updatePushCredential : null,
           icon: const Icon(Icons.sync, size: 18),
           label: const Text('Update Token'),
+        ),
+        ElevatedButton.icon(
+          onPressed: _isInitialized ? _resetPushCredentialExpiry : null,
+          icon: const Icon(Icons.update, size: 18),
+          label: const Text('Reset Expiry'),
         ),
         ElevatedButton.icon(
           onPressed: _isInitialized ? _getPushChallenge : null,
@@ -985,6 +996,29 @@ class _HomeScreenState extends State<HomeScreen> {
       _addOutput('✅ Push credential found');
       _addOutput('   Credential ID: ${credential.credentialId}');
       _addOutput('   User ID: ${credential.userId}');
+      if (credential.expiresAt != null) {
+        _addOutput('   Expires At: ${credential.expiresAt}');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _copyPushPublicKey() async {
+    try {
+      final result = await authsignal.push.getCredential();
+      final credential = result.data;
+
+      if (credential == null) {
+        _addOutput(result.error != null
+            ? '❌ Error: ${result.error}'
+            : 'ℹ️ No push credential on this device');
+        return;
+      }
+
+      await Clipboard.setData(ClipboardData(text: credential.credentialId));
+      _addOutput('✅ Public key copied');
+      _addOutput('   ${credential.credentialId}');
     } catch (e) {
       _addOutput('❌ Error: $e');
     }
@@ -1024,6 +1058,9 @@ class _HomeScreenState extends State<HomeScreen> {
         _addOutput('✅ Push credential enrolled!');
         _addOutput('   Credential ID: ${result.data!.credentialId}');
         _addOutput('   User ID: ${result.data!.userId}');
+        if (result.data!.expiresAt != null) {
+          _addOutput('   Expires At: ${result.data!.expiresAt}');
+        }
       } else {
         _addOutput('❌ Failed to enroll push: ${result.error}');
       }
@@ -1045,14 +1082,41 @@ class _HomeScreenState extends State<HomeScreen> {
       _addOutput('   Push token (${PushService.mode.name}): '
           '${pushToken.substring(0, pushToken.length.clamp(0, 12))}…');
 
-      final result = await authsignal.push.updateCredential(pushToken);
+      final result = await authsignal.push.updateCredential(
+        UpdateCredentialInput(pushToken: pushToken),
+      );
 
       if (result.data != null) {
         _addOutput('✅ Push credential updated!');
         _addOutput('   Authenticator ID: ${result.data!.userAuthenticatorId}');
         _addOutput('   User ID: ${result.data!.userId}');
+        if (result.data!.expiresAt != null) {
+          _addOutput('   Expires At: ${result.data!.expiresAt}');
+        }
       } else {
         _addOutput('❌ Failed to update push credential: ${result.error}');
+      }
+    } catch (e) {
+      _addOutput('❌ Error: $e');
+    }
+  }
+
+  Future<void> _resetPushCredentialExpiry() async {
+    try {
+      _addOutput('📬 Resetting push credential expiry...');
+
+      final result = await authsignal.push.updateCredential(
+        const UpdateCredentialInput(resetExpiry: true),
+      );
+
+      if (result.data != null) {
+        _addOutput('✅ Push credential expiry reset!');
+        _addOutput('   Authenticator ID: ${result.data!.userAuthenticatorId}');
+        if (result.data!.expiresAt != null) {
+          _addOutput('   New Expires At: ${result.data!.expiresAt}');
+        }
+      } else {
+        _addOutput('❌ Failed to reset push expiry: ${result.error}');
       }
     } catch (e) {
       _addOutput('❌ Error: $e');

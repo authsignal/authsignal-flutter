@@ -190,7 +190,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "credentialId" to it.credentialId,
               "createdAt" to it.createdAt,
               "userId" to it.userId,
-              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt,
+              "expiresAt" to it.expiresAt,
             )
 
             result.success(data)
@@ -215,7 +216,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "credentialId" to it.credentialId,
               "createdAt" to it.createdAt,
               "userId" to it.userId,
-              "lastAuthenticatedAt" to it.lastAuthenticatedAt
+              "lastAuthenticatedAt" to it.lastAuthenticatedAt,
+              "expiresAt" to it.expiresAt,
             )
 
             result.success(data)
@@ -269,10 +271,11 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
       }
 
       "push.updateCredential" -> {
-        val pushToken = call.argument<String>("pushToken")!!
+        val pushToken = call.argument<String>("pushToken")
+        val resetExpiry = call.argument<Boolean>("resetExpiry") ?: false
 
         coroutineScope.launch {
-          val response = push.updateCredential(pushToken)
+          val response = push.updateCredential(pushToken, resetExpiry)
 
           handleResponse(response, result)?.let {
             val data = mapOf(
@@ -280,6 +283,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "userId" to it.userId,
               "lastVerifiedAt" to it.lastVerifiedAt,
               "pushToken" to it.pushToken,
+              "expiresAt" to it.expiresAt,
             )
 
             result.success(data)

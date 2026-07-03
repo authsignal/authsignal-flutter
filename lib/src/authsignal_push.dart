@@ -121,10 +121,29 @@ class AuthsignalPush {
   }
 
   Future<AuthsignalResponse<UpdatedAppCredential>> updateCredential(
-      String pushToken) async {
+      [Object? input]) async {
     await initCheck();
 
-    final arguments = <String, dynamic>{'pushToken': pushToken};
+    String? pushToken;
+    var resetExpiry = false;
+
+    if (input is String) {
+      pushToken = input;
+    } else if (input is UpdateCredentialInput) {
+      pushToken = input.pushToken;
+      resetExpiry = input.resetExpiry;
+    } else if (input != null) {
+      throw ArgumentError.value(
+        input,
+        'input',
+        'Must be a push token string or UpdateCredentialInput.',
+      );
+    }
+
+    final arguments = <String, dynamic>{
+      'pushToken': pushToken,
+      'resetExpiry': resetExpiry,
+    };
 
     try {
       final data = await methodChannel.invokeMapMethod<String, dynamic>(

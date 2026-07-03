@@ -31,7 +31,8 @@ void main() {
                 'credentialId': 'test_push_credential_id',
                 'createdAt': '2023-01-01T00:00:00Z',
                 'userId': 'test_user_id',
-                'lastAuthenticatedAt': '2023-01-02T00:00:00Z'
+                'lastAuthenticatedAt': '2023-01-02T00:00:00Z',
+                'expiresAt': '2026-01-01T00:00:00Z',
               };
             }
 
@@ -41,7 +42,8 @@ void main() {
                 'credentialId': 'new_push_credential_id',
                 'createdAt': '2023-01-01T00:00:00Z',
                 'userId': 'test_user_id',
-                'lastAuthenticatedAt': null
+                'lastAuthenticatedAt': null,
+                'expiresAt': '2026-01-01T00:00:00Z',
               };
             }
 
@@ -69,11 +71,16 @@ void main() {
 
           case "push.updateCredential":
             {
+              final arguments =
+                  (methodCall.arguments as Map).cast<String, dynamic>();
               return <String, dynamic>{
                 'userAuthenticatorId': 'test_push_authenticator_id',
                 'userId': 'test_user_id',
                 'lastVerifiedAt': '2023-01-03T00:00:00Z',
-                'pushToken': methodCall.arguments['pushToken'],
+                'pushToken': arguments['pushToken'],
+                'expiresAt': arguments['resetExpiry'] == true
+                    ? '2026-02-01T00:00:00Z'
+                    : '2026-01-01T00:00:00Z',
               };
             }
 
@@ -223,6 +230,7 @@ void main() {
     expect(result.data!.userId, 'test_user_id');
     expect(result.data!.createdAt, '2023-01-01T00:00:00Z');
     expect(result.data!.lastAuthenticatedAt, '2023-01-02T00:00:00Z');
+    expect(result.data!.expiresAt, '2026-01-01T00:00:00Z');
   });
 
   test('push.addCredential', () async {
@@ -232,6 +240,7 @@ void main() {
     expect(result.data!.userId, 'test_user_id');
     expect(result.data!.createdAt, '2023-01-01T00:00:00Z');
     expect(result.data!.lastAuthenticatedAt, null);
+    expect(result.data!.expiresAt, '2026-01-01T00:00:00Z');
   });
 
   test('push.removeCredential', () async {
@@ -267,6 +276,19 @@ void main() {
     expect(result.data!.userId, 'test_user_id');
     expect(result.data!.lastVerifiedAt, '2023-01-03T00:00:00Z');
     expect(result.data!.pushToken, 'test-push-token');
+    expect(result.data!.expiresAt, '2026-01-01T00:00:00Z');
+  });
+
+  test('push.updateCredential reset expiry', () async {
+    final result = await authsignal.push.updateCredential(
+      const UpdateCredentialInput(resetExpiry: true),
+    );
+
+    expect(result.data!.userAuthenticatorId, 'test_push_authenticator_id');
+    expect(result.data!.userId, 'test_user_id');
+    expect(result.data!.lastVerifiedAt, '2023-01-03T00:00:00Z');
+    expect(result.data!.pushToken, null);
+    expect(result.data!.expiresAt, '2026-02-01T00:00:00Z');
   });
 
   test('qr.getCredential', () async {

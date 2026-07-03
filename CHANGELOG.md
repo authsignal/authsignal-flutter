@@ -1,3 +1,9 @@
+## 3.2.0
+
+- Added push credential expiry support with `push.updateCredential(UpdateCredentialInput(resetExpiry: true))`.
+- Added optional `expiresAt` fields to push credential responses.
+- Updated native dependencies to Authsignal iOS `~> 2.12.0` and Authsignal Android `4.2.0`.
+
 ## 3.1.0
 
 - Added `push.updateCredential(pushToken)` so enrolled devices can refresh their push token.
