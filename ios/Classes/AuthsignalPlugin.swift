@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import Authsignal
 
-private let authsignalFlutterVersion = "3.1.0"
+private let authsignalFlutterVersion = "3.2.0"
 
 public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var passkey: AuthsignalPasskey?
@@ -170,6 +170,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "createdAt": data.createdAt,
             "userId": data.userId,
             "lastAuthenticatedAt": data.lastAuthenticatedAt,
+            "expiresAt": data.expiresAt,
           ]
 
           result(credential)
@@ -204,6 +205,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "createdAt": data.createdAt,
             "userId": data.userId,
             "lastAuthenticatedAt": data.lastAuthenticatedAt,
+            "expiresAt": data.expiresAt,
           ]
 
           result(credential)
@@ -272,10 +274,14 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
 
     case "push.updateCredential":
       let arguments = call.arguments as! [String: Any]
-      let pushToken = arguments["pushToken"] as! String
+      let pushToken = arguments["pushToken"] as? String
+      let resetExpiry = arguments["resetExpiry"] as? Bool ?? false
 
       Task.init {
-        let response = await self.push!.updateCredential(pushToken: pushToken)
+        let response = await self.push!.updateCredential(
+          pushToken: pushToken,
+          resetExpiry: resetExpiry
+        )
 
         if response.error != nil {
           let error = FlutterError(code: response.errorCode ?? "unexpected_error", message: response.error, details: "")
@@ -286,6 +292,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "userId": data.userId,
             "lastVerifiedAt": data.lastVerifiedAt,
             "pushToken": data.pushToken,
+            "expiresAt": data.expiresAt,
           ]
 
           result(credential)
