@@ -60,7 +60,8 @@ void main() {
                 'idempotencyKey': 'test_key',
                 'userAgent': 'test_agent',
                 'deviceId': 'test_device',
-                'ipAddress': '127.0.0.1'
+                'ipAddress': '127.0.0.1',
+                'expiresAt': 1783400000,
               };
             }
 
@@ -258,6 +259,7 @@ void main() {
     expect(result.data!.userAgent, 'test_agent');
     expect(result.data!.deviceId, 'test_device');
     expect(result.data!.ipAddress, '127.0.0.1');
+    expect(result.data!.expiresAt, 1783400000);
   });
 
   test('push.updateChallenge', () async {

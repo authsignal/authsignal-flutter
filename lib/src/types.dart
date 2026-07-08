@@ -156,6 +156,7 @@ class AppChallenge {
   final String? userAgent;
   final String? deviceId;
   final String? ipAddress;
+  final int? expiresAt;
   final Map<String, dynamic>? custom;
   final ChallengeUser? user;
 
@@ -166,6 +167,7 @@ class AppChallenge {
     required this.userAgent,
     required this.deviceId,
     required this.ipAddress,
+    this.expiresAt,
     this.custom,
     this.user,
   });
@@ -178,6 +180,7 @@ class AppChallenge {
       userAgent: map['userAgent'],
       deviceId: map['deviceId'],
       ipAddress: map['ipAddress'],
+      expiresAt: (map['expiresAt'] as num?)?.toInt(),
       custom: (map['custom'] as Map?)?.cast<String, dynamic>(),
       user: map['user'] != null
           ? ChallengeUser.fromMap((map['user'] as Map).cast<String, dynamic>())
