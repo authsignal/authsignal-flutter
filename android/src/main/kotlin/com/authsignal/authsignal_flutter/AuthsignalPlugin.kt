@@ -247,6 +247,7 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "ipAddress" to it.ipAddress,
               "deviceId" to it.deviceId,
               "userAgent" to it.userAgent,
+              "expiresAt" to it.expiresAt,
               "custom" to jsonElementToAny(it.custom),
               "user" to it.user?.let { user -> mapOf("custom" to jsonElementToAny(user.custom)) }
             )

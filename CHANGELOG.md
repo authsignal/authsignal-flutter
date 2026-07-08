@@ -1,3 +1,8 @@
+## 3.3.0
+
+- Added `expiresAt` to push challenge responses returned by `push.getChallenge()`.
+- Updated native dependencies to Authsignal iOS `~> 2.13.0` and Authsignal Android `4.3.0`.
+
 ## 3.2.0
 
 - Added push credential expiry support with `push.updateCredential(UpdateCredentialInput(resetExpiry: true))`.

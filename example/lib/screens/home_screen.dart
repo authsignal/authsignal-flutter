@@ -1140,6 +1140,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       _addOutput('✅ Challenge: ${challenge.challengeId}');
       _addOutput('   actionCode: ${challenge.actionCode}');
+      _addOutput('   expiresAt: ${challenge.expiresAt ?? '(none)'}');
       _addOutput('   custom: ${challenge.custom ?? '(none)'}');
       _addOutput('   user.custom: ${challenge.user?.custom ?? '(none)'}');
     } catch (e) {

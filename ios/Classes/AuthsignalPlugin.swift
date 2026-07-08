@@ -2,7 +2,7 @@ import Flutter
 import UIKit
 import Authsignal
 
-private let authsignalFlutterVersion = "3.2.0"
+private let authsignalFlutterVersion = "3.3.0"
 
 public class AuthsignalPlugin: NSObject, FlutterPlugin {
   var passkey: AuthsignalPasskey?
@@ -241,6 +241,7 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "userAgent": challenge.userAgent,
             "deviceId": challenge.deviceId,
             "ipAddress": challenge.ipAddress,
+            "expiresAt": challenge.expiresAt,
             "custom": challenge.custom?.mapValues { $0.value },
             "user": challenge.user.map { user in ["custom": user.custom?.mapValues { $0.value }] },
           ]
