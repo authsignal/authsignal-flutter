@@ -192,6 +192,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "userId" to it.userId,
               "lastAuthenticatedAt" to it.lastAuthenticatedAt,
               "expiresAt" to it.expiresAt,
+              "erroredAt" to it.erroredAt,
+              "errorCode" to it.errorCode,
             )
 
             result.success(data)
@@ -218,6 +220,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "userId" to it.userId,
               "lastAuthenticatedAt" to it.lastAuthenticatedAt,
               "expiresAt" to it.expiresAt,
+              "erroredAt" to it.erroredAt,
+              "errorCode" to it.errorCode,
             )
 
             result.success(data)
@@ -285,6 +289,8 @@ class AuthsignalPlugin: FlutterPlugin, ActivityAware, MethodCallHandler {
               "lastVerifiedAt" to it.lastVerifiedAt,
               "pushToken" to it.pushToken,
               "expiresAt" to it.expiresAt,
+              "erroredAt" to it.erroredAt,
+              "errorCode" to it.errorCode,
             )
 
             result.success(data)

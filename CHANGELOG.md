@@ -1,3 +1,8 @@
+## 3.4.0
+
+- Added optional `erroredAt` and `errorCode` fields to push credential responses, set when APNs or FCM report that the credential's push token is no longer valid.
+- Updated native dependencies to Authsignal iOS `~> 2.14.0` and Authsignal Android `4.4.0`.
+
 ## 3.3.0
 
 - Added `expiresAt` to push challenge responses returned by `push.getChallenge()`.

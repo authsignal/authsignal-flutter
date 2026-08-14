@@ -171,6 +171,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "userId": data.userId,
             "lastAuthenticatedAt": data.lastAuthenticatedAt,
             "expiresAt": data.expiresAt,
+            "erroredAt": data.erroredAt,
+            "errorCode": data.errorCode,
           ]
 
           result(credential)
@@ -206,6 +208,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "userId": data.userId,
             "lastAuthenticatedAt": data.lastAuthenticatedAt,
             "expiresAt": data.expiresAt,
+            "erroredAt": data.erroredAt,
+            "errorCode": data.errorCode,
           ]
 
           result(credential)
@@ -294,6 +298,8 @@ public class AuthsignalPlugin: NSObject, FlutterPlugin {
             "lastVerifiedAt": data.lastVerifiedAt,
             "pushToken": data.pushToken,
             "expiresAt": data.expiresAt,
+            "erroredAt": data.erroredAt,
+            "errorCode": data.errorCode,
           ]
 
           result(credential)
