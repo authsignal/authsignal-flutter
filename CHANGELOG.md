@@ -1,3 +1,7 @@
+## 3.3.1
+
+- Added Swift Package Manager support for iOS while retaining CocoaPods compatibility.
+
 ## 3.3.0
 
 - Added `expiresAt` to push challenge responses returned by `push.getChallenge()`.
