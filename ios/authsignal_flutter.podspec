@@ -1,13 +1,13 @@
 Pod::Spec.new do |s|
   s.name             = 'authsignal_flutter'
-  s.version          = '3.3.0'
+  s.version          = '3.3.1'
   s.summary          = 'The Authsignal Flutter SDK.'
   s.description      = 'The Authsignal Flutter SDK.'
   s.homepage         = 'https://www.authsignal.com'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Authsignal' => 'support@authsignal.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'authsignal_flutter/Sources/authsignal_flutter/**/*.swift'
   s.dependency 'Flutter'
   s.dependency 'Authsignal', '~> 2.13.0'
   s.platform = :ios, '13.0'

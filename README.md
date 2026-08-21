@@ -10,7 +10,7 @@ Add the Authsignal Flutter SDK to your project:
 
 ```yaml
 dependencies:
-  authsignal_flutter: ^3.3.0
+  authsignal_flutter: ^3.3.1
 ```
 
 Then install the package:
@@ -19,7 +19,9 @@ Then install the package:
 flutter pub get
 ```
 
-For iOS apps, install CocoaPods dependencies:
+Flutter 3.44 and newer resolve iOS dependencies with Swift Package Manager by default.
+The SDK also continues to support CocoaPods. For projects using CocoaPods, install the
+iOS dependencies with:
 
 ```bash
 cd ios && pod install
