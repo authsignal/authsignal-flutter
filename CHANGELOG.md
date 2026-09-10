@@ -1,3 +1,7 @@
+## 3.3.2
+
+- Updated the iOS SDK to 2.13.1 to fix passkey sign-in ignoring the allowed credentials list.
+
 ## 3.3.1
 
 - Added Swift Package Manager support for iOS while retaining CocoaPods compatibility.

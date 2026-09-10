@@ -10,7 +10,7 @@ Add the Authsignal Flutter SDK to your project:
 
 ```yaml
 dependencies:
-  authsignal_flutter: ^3.3.1
+  authsignal_flutter: ^3.3.2
 ```
 
 Then install the package:
