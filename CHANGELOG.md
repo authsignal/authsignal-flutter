@@ -1,3 +1,7 @@
+## 3.3.3
+
+- Updated native dependencies to Authsignal iOS `~> 2.13.3` and Authsignal Android `4.3.2`, which fix in-app PIN verification and keep the token after a failed verification on Android.
+
 ## 3.3.2
 
 - Updated the iOS SDK to 2.13.1 to fix passkey sign-in ignoring the allowed credentials list.
