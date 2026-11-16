@@ -17,7 +17,7 @@ let package = Package(
     .package(name: "FlutterFramework", path: "../FlutterFramework"),
     .package(
       url: "https://github.com/authsignal/authsignal-ios.git",
-      .upToNextMinor(from: "2.13.3")
+      .upToNextMinor(from: "2.14.1")
     )
   ],
   targets: [
