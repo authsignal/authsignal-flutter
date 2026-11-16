@@ -1,3 +1,8 @@
+## 3.4.0
+
+- Updated native dependencies to Authsignal iOS `~> 2.14.1` and Authsignal Android `4.4.1`, which retry failed requests when it's safe.
+- Passkey `signUp` now returns `matched_excluded_credential` when the device already has a passkey for the user, on iOS 17.4+ and on Samsung devices.
+
 ## 3.3.3
 
 - Updated native dependencies to Authsignal iOS `~> 2.13.3` and Authsignal Android `4.3.2`, which fix in-app PIN verification and keep the token after a failed verification on Android.
